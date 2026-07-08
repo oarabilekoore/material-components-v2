@@ -1,0 +1,71 @@
+<!doctype html>
+<html>
+
+<head>
+  <title>materiald - A morden ds port</title>
+  <link rel="stylesheet" href="./global.css">
+
+  <style>
+    @font-face {
+      font-family: 'Material Symbols Outlined';
+      font-style: normal;
+      font-weight: 100 700;
+
+      src: url('/icons/MaterialSymbolsOutlined[FILL,GRAD,opsz,wght].woff2') format('woff2');
+    }
+
+    .material-icons {
+      font-family: 'Material Symbols Outlined';
+      font-style: normal;
+      font-size: 24px;
+      display: inline-block;
+      line-height: 1;
+      text-transform: none;
+      letter-spacing: normal;
+      word-wrap: normal;
+      white-space: nowrap;
+      direction: ltr;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      text-rendering: optimizeLegibility;
+      font-feature-settings: 'liga';
+      /* Translates word strings into vector icons */
+    }
+  </style>
+</head>
+
+<body>
+  <div id="root"></div>
+  <script type="module">
+    import handlers from "./src/App.ts";
+
+    if (!handlers || typeof handlers.OnStart !== "function") {
+      console.error("OnStart not defined");
+    } else {
+      if (handlers.OnBack) {
+        history.pushState({__fpctSentinel: true}, "");
+        window.addEventListener("popstate", () => {
+          handlers.OnBack();
+          history.pushState({__fpctSentinel: true}, "");
+        });
+      }
+
+      if (handlers.OnPause || handlers.OnResume) {
+        document.addEventListener("visibilitychange", () => {
+          if (document.hidden) handlers.OnPause?.();
+          else handlers.OnResume?.();
+        });
+      }
+
+      if (handlers.OnConfig) {
+        window.addEventListener("resize", () => handlers.OnConfig());
+        screen.orientation?.addEventListener?.("change", () => handlers.OnConfig());
+      }
+
+      handlers.OnStart();
+      window.__fpctStarted = true;
+    }
+  </script>
+</body>
+
+</html>
