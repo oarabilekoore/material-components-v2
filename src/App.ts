@@ -98,7 +98,16 @@ function OnStart() {
 
   const badgeAnchor = ui.AddButton(btnGroup, "Notifications", "text");
   ui.AddBadge(badgeAnchor.element, "large", "5");
+  // --- Extended FAB ---
+  ui.AddExtendedFab(root, "edit", "Compose", "medium").SetOnClick(() =>
+    console.log("compose"),
+  );
 
+  // --- FAB Menu (fixed overlay, bottom-right) ---
+  const fabMenu = ui.CreateFabMenu("add", "close");
+  fabMenu.AddItem("photo_camera", "Photo", () => console.log("photo"));
+  fabMenu.AddItem("mic", "Voice note", () => console.log("voice"));
+  fabMenu.AddItem("edit_note", "Text note", () => console.log("text"));
   // --- Divider ---
   ui.AddDivider(body);
 

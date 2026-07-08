@@ -12,13 +12,12 @@ export class Fab extends BaseElement {
     this.element.className = `m3-fab m3-fab-${size}`;
 
     const sizeMap: Record<FabSize, { dim: string; iconSize: string }> = {
-      small: { dim: "40px", iconSize: "20px" },
+      small: { dim: "40px", iconSize: "24px" }, // was 20px — real M3 spec is 24dp for small
       medium: { dim: "56px", iconSize: "24px" },
       large: { dim: "96px", iconSize: "36px" },
     };
 
     const currentDim = sizeMap[size].dim;
-
     this.element.style.cssText = `
       width: ${currentDim};
       height: ${currentDim};
@@ -32,7 +31,7 @@ export class Fab extends BaseElement {
       cursor: pointer;
       box-shadow: 0 ${currentTheme.elevationLevel3}px ${currentTheme.elevationLevel4}px rgba(0,0,0,0.2);
       transition: box-shadow 0.2s ease, background-color 0.2s ease;
-      font-family: var(--md-font-family, Roboto, sans-serif);
+      font-family: ${currentTheme.fontFamily};
     `;
 
     this.iconEl = document.createElement("span");
@@ -47,6 +46,12 @@ export class Fab extends BaseElement {
     this.element.addEventListener("mouseleave", () => {
       this.element.style.boxShadow = `0 ${currentTheme.elevationLevel3}px ${currentTheme.elevationLevel4}px rgba(0,0,0,0.2)`;
     });
+  }
+
+  /** Updates the displayed icon. */
+  SetIcon(icon: string): this {
+    this.iconEl.textContent = icon;
+    return this;
   }
 
   SetOnClick(callback: (e: MouseEvent) => void): this {
