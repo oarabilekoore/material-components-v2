@@ -37,9 +37,28 @@ export class WebComponentElement extends BaseElement {
     return this;
   }
 
+  /** Appends a control into this component's light DOM, e.g. for components
+   * that project children through a `<slot>`. Pass `slot` to target a named
+   * slot via the `slot` attribute. */
+  AddChild(child: BaseElement, slot?: string): this {
+    if (slot) child.element.setAttribute("slot", slot);
+    this.element.appendChild(child.element);
+    return this;
+  }
+
+  /** Removes a previously-appended child control. */
+  RemoveChild(child: BaseElement): this {
+    if (child.element.parentElement === this.element) {
+      this.element.removeChild(child.element);
+    }
+    return this;
+  }
+
   /** Resolves once the custom element has been upgraded and is ready. */
   WhenReady(): Promise<void> {
-    return customElements.whenDefined(this.element.tagName.toLowerCase());
+    return customElements
+      .whenDefined(this.element.tagName.toLowerCase())
+      .then(() => undefined);
   }
 }
 

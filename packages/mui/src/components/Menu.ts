@@ -85,8 +85,8 @@ export class Menu extends BaseElement {
   }
 
   /** Opens the menu anchored below a target element. */
-  ShowAtElement(target: HTMLElement): this {
-    const rect = target.getBoundingClientRect();
+  ShowAtElement(target: BaseElement): this {
+    const rect = target.element.getBoundingClientRect();
     return this.OpenAt(
       rect.left + window.scrollX,
       rect.bottom + window.scrollY,

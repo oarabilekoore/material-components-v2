@@ -5,6 +5,7 @@ export * from "./theme.ts";
 //
 export * from "./components/TextField.ts";
 export * from "./components/ExtendedFAB.ts";
+export * from "./components/Tabs.ts";
 export * from "./components/FabMenu.ts";
 export * from "./components/Slider.ts";
 export * from "./components/Chip.ts";
