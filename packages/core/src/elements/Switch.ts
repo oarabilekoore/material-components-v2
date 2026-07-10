@@ -1,4 +1,4 @@
-import { BaseElement } from "./base_element.ts";
+import { BaseElement } from "./BaseElement.ts";
 
 /** An on/off switch. */
 export class SwitchElement extends BaseElement {

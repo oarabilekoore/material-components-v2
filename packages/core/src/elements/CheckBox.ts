@@ -1,4 +1,4 @@
-import { TextElement } from "./text_element.ts";
+import { TextElement } from "./Text.ts";
 
 /** A checkbox with a text label. */
 export class CheckBoxElement extends TextElement {

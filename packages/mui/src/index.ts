@@ -33,3 +33,12 @@ export * from "./components/Snackbar.ts";
 export * from "./components/Switch.ts";
 export * from "./components/Tooltip.ts";
 export * from "./components/TopAppBar.ts";
+export * from "./components/Carousel.ts";
+export * from "./components/DatePicker.ts";
+export * from "./components/TimePicker.ts";
+export * from "./components/SearchBar.ts";
+export * from "./components/SideSheet.ts";
+export * from "./components/BottomAppBar.ts";
+export * from "./components/SplitButton.ts";
+export * from "./components/Accordion.ts";
+

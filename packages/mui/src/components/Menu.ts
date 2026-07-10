@@ -1,4 +1,4 @@
-import { BaseElement } from "../../../core/src/elements/base_element.ts";
+import { BaseElement } from "../../../core/src/elements/BaseElement.ts";
 import { currentTheme } from "../theme.ts";
 
 export class Menu extends BaseElement {
@@ -108,6 +108,6 @@ export class Menu extends BaseElement {
   }
 }
 
-export function CreateMenu(): Menu {
+function CreateMenu(): Menu {
   return new Menu();
 }

@@ -1,10 +1,115 @@
-import { BaseElement } from "../../../core/src/elements/base_element.ts";
-import { LayoutElement } from "../../../core/src/elements/layout_element.ts";
-import { TopAppBarVariant, currentTheme } from "../theme.ts";
+import { BaseElement } from "../../../core/src/elements/BaseElement.ts";
+import { LayoutElement } from "../../../core/src/elements/Layout.ts";
+import { TopAppBarVariant } from "../theme.ts";
+import { sva } from "../../../core/src/utils/sva.ts";
 
-const HEIGHT_COMPACT = 64; // small, center-aligned, and the collapsed state of medium/large
+const HEIGHT_COMPACT = 64;
 const HEIGHT_MEDIUM_EXPANDED = 112;
 const HEIGHT_LARGE_EXPANDED = 152;
+
+const barSva = sva({
+  base: {
+    display: "flex",
+    flexDirection: "column",
+    backgroundColor: "var(--md-surface)",
+    color: "var(--md-on-surface)",
+    fontFamily: "var(--md-font-family, Roboto, sans-serif)",
+    boxSizing: "border-box",
+    position: "sticky",
+    top: "0",
+    zIndex: 10,
+    overflow: "hidden",
+    transition: "height 0.15s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.15s ease, background-color 0.15s ease",
+  },
+});
+
+const topRowSva = sva({
+  base: {
+    display: "flex",
+    alignItems: "center",
+    padding: "0 4px",
+    height: `${HEIGHT_COMPACT}px`,
+    flexShrink: "0",
+  },
+});
+
+const titleSva = sva({
+  base: {
+    flex: "1",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap",
+    transition: "font-size 0.15s ease, padding 0.15s ease, opacity 0.1s ease",
+  },
+  variants: {
+    variant: {
+      small: {
+        fontSize: "1.375rem",
+        textAlign: "left",
+        paddingLeft: "4px",
+      },
+      "center-aligned": {
+        fontSize: "1.375rem",
+        textAlign: "center",
+        paddingLeft: "0",
+      },
+      medium: {
+        textAlign: "left",
+        opacity: "0",
+      },
+      large: {
+        textAlign: "left",
+        opacity: "0",
+      },
+    },
+  },
+});
+
+const expandedTitleSva = sva({
+  base: {
+    padding: "0 16px 24px 16px",
+    display: "block",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap",
+    transition: "font-size 0.15s ease, opacity 0.15s ease",
+  },
+  variants: {
+    variant: {
+      medium: { fontSize: "1.75rem" },
+      large: { fontSize: "2rem" },
+    },
+  },
+});
+
+const navContainerSva = sva({
+  base: {
+    display: "flex",
+    alignItems: "center",
+    width: "48px",
+    justifyContent: "center",
+  },
+});
+
+const actionsContainerSva = sva({
+  base: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "flex-end",
+  },
+});
+
+const appIconSva = sva({
+  base: {
+    cursor: "pointer",
+    fontSize: "24px",
+    width: "24px",
+    height: "24px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+});
 
 export class TopAppBar extends BaseElement {
   private _titleEl: HTMLSpanElement;
@@ -25,45 +130,21 @@ export class TopAppBar extends BaseElement {
           ? HEIGHT_LARGE_EXPANDED
           : HEIGHT_COMPACT;
 
-    this.element.className = "m3-top-app-bar";
-    this.element.style.display = "flex";
-    this.element.style.flexDirection = "column";
-    this.element.style.backgroundColor = currentTheme.surface;
-    this.element.style.color = currentTheme.onSurface;
-    this.element.style.fontFamily = currentTheme.fontFamily;
-    this.element.style.boxSizing = "border-box";
-    this.element.style.position = "sticky";
-    this.element.style.top = "0";
-    this.element.style.zIndex = "10";
-    this.element.style.overflow = "hidden";
-    this.element.style.transition =
-      "height 0.15s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.15s ease, background-color 0.15s ease";
+    this.element.className = "m3-top-app-bar " + barSva();
+    this.element.style.height = `${this._expandedHeight}px`;
 
     const topRow = document.createElement("div");
-    topRow.style.display = "flex";
-    topRow.style.alignItems = "center";
-    topRow.style.padding = "0 4px";
-    topRow.style.height = `${HEIGHT_COMPACT}px`;
-    topRow.style.flexShrink = "0";
+    topRow.className = topRowSva();
 
     this._navigationIconContainer = document.createElement("div");
-    this._navigationIconContainer.style.display = "flex";
-    this._navigationIconContainer.style.alignItems = "center";
-    this._navigationIconContainer.style.width = "48px";
-    this._navigationIconContainer.style.justifyContent = "center";
+    this._navigationIconContainer.className = navContainerSva();
 
     this._titleEl = document.createElement("span");
+    this._titleEl.className = titleSva({ variant });
     this._titleEl.textContent = title;
-    this._titleEl.style.flex = "1";
-    this._titleEl.style.overflow = "hidden";
-    this._titleEl.style.textOverflow = "ellipsis";
-    this._titleEl.style.whiteSpace = "nowrap";
-    this._titleEl.style.transition = "font-size 0.15s ease, padding 0.15s ease";
 
     this._actionsContainer = document.createElement("div");
-    this._actionsContainer.style.display = "flex";
-    this._actionsContainer.style.alignItems = "center";
-    this._actionsContainer.style.justifyContent = "flex-end";
+    this._actionsContainer.className = actionsContainerSva();
 
     topRow.appendChild(this._navigationIconContainer);
     topRow.appendChild(this._titleEl);
@@ -74,54 +155,22 @@ export class TopAppBar extends BaseElement {
   }
 
   private applyVariant(variant: TopAppBarVariant): void {
-    this.element.style.height = `${this._expandedHeight}px`;
-
-    switch (variant) {
-      case "small":
-        this._titleEl.style.fontSize = "1.375rem";
-        this._titleEl.style.textAlign = "left";
-        this._titleEl.style.paddingLeft = "4px";
-        break;
-
-      case "center-aligned":
-        this._titleEl.style.fontSize = "1.375rem";
-        this._titleEl.style.textAlign = "center";
-        this._titleEl.style.paddingLeft = "0";
-        break;
-
-      case "medium":
-      case "large": {
-        // expanded-state title sits below the icon row, per spec, left-aligned, larger type
-        this._titleEl.style.textAlign = "left";
-        const expandedTitle = document.createElement("span");
-        expandedTitle.textContent = this._titleEl.textContent;
-        expandedTitle.style.fontSize =
-          variant === "medium" ? "1.75rem" : "2rem";
-        expandedTitle.style.padding = "0 16px 24px 16px";
-        expandedTitle.style.display = "block";
-        expandedTitle.style.overflow = "hidden";
-        expandedTitle.style.textOverflow = "ellipsis";
-        expandedTitle.style.whiteSpace = "nowrap";
-        expandedTitle.style.transition =
-          "font-size 0.15s ease, opacity 0.15s ease";
-        expandedTitle.dataset.role = "expanded-title";
-        this.element.appendChild(expandedTitle);
-
-        this._titleEl.style.opacity = "0"; // top-row title is invisible until collapsed
-        this._titleEl.style.transition = "opacity 0.1s ease";
-        break;
-      }
+    if (variant === "medium" || variant === "large") {
+      const expandedTitle = document.createElement("span");
+      expandedTitle.className = expandedTitleSva({ variant });
+      expandedTitle.textContent = this._titleEl.textContent;
+      expandedTitle.dataset.role = "expanded-title";
+      this.element.appendChild(expandedTitle);
     }
   }
 
-  /** Recomputes height/title state based on the scroll target's current offset. */
   private updateScrollState(): void {
     if (!this._scrollTarget) return;
     const scrollTop = this._scrollTarget.scrollTop;
 
     if (this._variant === "medium" || this._variant === "large") {
       const collapseRange = this._expandedHeight - HEIGHT_COMPACT;
-      const progress = Math.min(1, Math.max(0, scrollTop / collapseRange)); // 0 = expanded, 1 = fully collapsed
+      const progress = Math.min(1, Math.max(0, scrollTop / collapseRange));
       const currentHeight = this._expandedHeight - collapseRange * progress;
       this.element.style.height = `${currentHeight}px`;
 
@@ -131,22 +180,20 @@ export class TopAppBar extends BaseElement {
       if (expandedTitle) {
         expandedTitle.style.opacity = `${1 - progress}`;
       }
-      this._titleEl.style.opacity = `${progress}`; // top-row title fades in as it collapses
+      this._titleEl.style.opacity = `${progress}`;
 
       this.element.style.boxShadow =
         progress > 0.05
-          ? `0 ${currentTheme.elevationLevel2}px ${currentTheme.elevationLevel3}px rgba(0,0,0,0.15)`
+          ? "0 3px 6px rgba(0,0,0,0.15)"
           : "none";
     } else {
-      // small / center-aligned: fixed height, but still gain elevation once content scrolls under them
       this.element.style.boxShadow =
         scrollTop > 0
-          ? `0 ${currentTheme.elevationLevel2}px ${currentTheme.elevationLevel3}px rgba(0,0,0,0.15)`
+          ? "0 3px 6px rgba(0,0,0,0.15)"
           : "none";
     }
   }
 
-  /** Wires this app bar's collapse/elevation behavior to a scrollable container's scroll events. */
   AttachScrollable(target: HTMLElement): this {
     if (this._scrollTarget) {
       this._scrollTarget.removeEventListener("scroll", this._onScroll);
@@ -157,20 +204,17 @@ export class TopAppBar extends BaseElement {
     return this;
   }
 
-  /** Sets the navigation icon (typically a menu or back IconButton). */
   SetNavigationIcon(iconBtn: BaseElement): this {
     this._navigationIconContainer.innerHTML = "";
     this._navigationIconContainer.appendChild(iconBtn.element);
     return this;
   }
 
-  /** Adds an action icon to the trailing end of the app bar. */
   AddAction(iconBtn: BaseElement): this {
     this._actionsContainer.appendChild(iconBtn.element);
     return this;
   }
 
-  /** Updates the title text in both the compact row and (if present) the expanded headline. */
   SetTitle(title: string): this {
     this._titleEl.textContent = title;
     const expandedTitle = this.element.querySelector<HTMLSpanElement>(
@@ -185,13 +229,21 @@ export class TopAppBar extends BaseElement {
   }
 }
 
-export function CreateTopAppBar(
+function CreateTopAppBar(
   title: string,
   variant: TopAppBarVariant = "small",
 ): TopAppBar {
   return new TopAppBar(title, variant);
 }
 
+/**
+ * AddTopAppBar function.
+ * @param {LayoutElement} parent - The parent parameter
+ * @param {string} title - The title parameter
+ * @param {TopAppBarVariant} variant - The variant parameter
+ * @returns {TopAppBar}
+ *
+ */
 export function AddTopAppBar(
   parent: LayoutElement,
   title: string,
@@ -202,21 +254,13 @@ export function AddTopAppBar(
   return bar;
 }
 
-/** Creates a standard icon-only span for use as a navigation or action icon, following the material-icons font convention. */
-export function CreateAppBarIcon(
+function CreateAppBarIcon(
   iconName: string,
   onClick?: () => void,
 ): BaseElement {
   const icon = new BaseElement("span");
-  icon.element.className = "material-icons";
+  icon.element.className = "material-icons " + appIconSva();
   icon.element.textContent = iconName;
-  icon.element.style.cursor = "pointer";
-  icon.element.style.fontSize = "24px";
-  icon.element.style.width = "24px";
-  icon.element.style.height = "24px";
-  icon.element.style.display = "flex";
-  icon.element.style.alignItems = "center";
-  icon.element.style.justifyContent = "center";
   if (onClick) icon.element.addEventListener("click", onClick);
   return icon;
 }

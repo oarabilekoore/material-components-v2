@@ -1,41 +1,59 @@
-import { BaseElement } from "../../../core/src/elements/base_element.ts";
-import { LayoutElement } from "../../../core/src/elements/layout_element.ts";
-import { BadgeVariant, currentTheme } from "../theme.ts";
+import { BaseElement } from "../../../core/src/elements/BaseElement.ts";
+import { BadgeVariant } from "../theme.ts";
+import { sva } from "../../../core/src/utils/sva.ts";
+
+const badgeSva = sva({
+  base: {
+    backgroundColor: "var(--md-error)",
+    color: "var(--md-on-error)",
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontFamily: "var(--md-font-family, Roboto, sans-serif)",
+  },
+  variants: {
+    variant: {
+      small: {
+        width: "6px",
+        height: "6px",
+        borderRadius: "3px",
+        padding: "0",
+        fontSize: "0",
+      },
+      large: {
+        minWidth: "16px",
+        height: "16px",
+        borderRadius: "8px",
+        padding: "0 4px",
+        fontSize: "11px",
+        fontWeight: "500",
+      },
+    },
+  },
+  defaultVariants: {
+    variant: "small",
+  },
+});
 
 export class Badge extends BaseElement {
   private _variant: BadgeVariant;
   private _content: string;
+  private _svaClass = "";
 
   constructor(variant: BadgeVariant = "small", content: string = "") {
     super("div");
     this._variant = variant;
     this._content = content;
-    this.element.className = "m3-badge";
-    this.element.style.backgroundColor = currentTheme.error;
-    this.element.style.color = currentTheme.onError;
-    this.element.style.display = "inline-flex";
-    this.element.style.alignItems = "center";
-    this.element.style.justifyContent = "center";
-    this.element.style.fontFamily = currentTheme.fontFamily;
     this.applyVariant(variant);
     this.SetContent(content);
   }
 
   private applyVariant(variant: BadgeVariant): void {
-    if (variant === "small") {
-      this.element.style.width = "6px";
-      this.element.style.height = "6px";
-      this.element.style.borderRadius = "3px";
-      this.element.style.padding = "0";
-      this.element.style.fontSize = "0";
-    } else {
-      this.element.style.minWidth = "16px";
-      this.element.style.height = "16px";
-      this.element.style.borderRadius = "8px";
-      this.element.style.padding = "0 4px";
-      this.element.style.fontSize = "11px";
-      this.element.style.fontWeight = "500";
+    if (this._svaClass) {
+      this.element.classList.remove(this._svaClass);
     }
+    this._svaClass = badgeSva({ variant });
+    this.element.classList.add(this._svaClass);
   }
 
   SetContent(content: string): this {
@@ -52,13 +70,21 @@ export class Badge extends BaseElement {
   }
 }
 
-export function CreateBadge(
+function CreateBadge(
   variant: BadgeVariant = "small",
   content: string = "",
 ): Badge {
   return new Badge(variant, content);
 }
 
+/**
+ * AddBadge function.
+ * @param {HTMLElement} parent - The parent parameter
+ * @param {BadgeVariant} variant - The variant parameter
+ * @param {string} content - The content parameter
+ * @returns {Badge}
+ *
+ */
 export function AddBadge(
   parent: HTMLElement,
   variant: BadgeVariant = "small",

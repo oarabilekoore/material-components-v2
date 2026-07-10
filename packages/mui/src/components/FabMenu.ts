@@ -1,5 +1,94 @@
-import { BaseElement } from "../../../core/src/elements/base_element.ts";
-import { currentTheme } from "../theme.ts";
+import { BaseElement } from "../../../core/src/elements/BaseElement.ts";
+import { sva } from "../../../core/src/utils/sva.ts";
+
+const menuSva = sva({
+  base: {
+    position: "fixed",
+    right: "16px",
+    bottom: "16px",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "flex-end",
+    gap: "12px",
+    zIndex: 1500,
+    fontFamily: "var(--md-font-family, Roboto, sans-serif)",
+  },
+});
+
+const containerSva = sva({
+  base: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "flex-end",
+    gap: "8px",
+  },
+});
+
+const toggleBtnSva = sva({
+  base: {
+    width: "56px",
+    height: "56px",
+    borderRadius: "16px",
+    backgroundColor: "var(--md-primary-container)",
+    color: "var(--md-on-primary-container)",
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    border: "none",
+    cursor: "pointer",
+    boxShadow: "0 6px 10px rgba(0,0,0,0.15)",
+    transition: "transform 0.2s cubic-bezier(0.2, 0, 0, 1), background-color 0.2s ease",
+    alignSelf: "flex-end",
+    outline: "none",
+  },
+});
+
+const toggleIconSva = sva({
+  base: {
+    fontSize: "24px",
+    transition: "transform 0.2s ease",
+  },
+});
+
+const rowSva = sva({
+  base: {
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
+    opacity: "0",
+    transform: "translateY(8px)",
+    pointerEvents: "none",
+    transition: "opacity 0.15s ease, transform 0.15s ease",
+  },
+});
+
+const chipSva = sva({
+  base: {
+    backgroundColor: "var(--md-surface-container, var(--md-surface))",
+    color: "var(--md-on-surface)",
+    padding: "6px 12px",
+    borderRadius: "8px",
+    fontSize: "0.875rem",
+    boxShadow: "0 1px 3px rgba(0,0,0,0.15)",
+  },
+});
+
+const itemBtnSva = sva({
+  base: {
+    width: "40px",
+    height: "40px",
+    borderRadius: "12px",
+    backgroundColor: "var(--md-secondary-container)",
+    color: "var(--md-on-secondary-container)",
+    border: "none",
+    cursor: "pointer",
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    boxShadow: "0 1px 3px rgba(0,0,0,0.15)",
+    outline: "none",
+  },
+});
 
 interface FabMenuItem {
   icon: string;
@@ -22,49 +111,17 @@ export class FabMenu extends BaseElement {
     this.openIcon = openIcon;
     this.closeIcon = closeIcon;
 
-    this.element.className = "m3-fab-menu";
-    this.element.style.cssText = `
-      position: fixed;
-      right: 16px;
-      bottom: 16px;
-      display: flex;
-      flex-direction: column;
-      align-items: flex-end;
-      gap: 12px;
-      z-index: 1500;
-      font-family: ${currentTheme.fontFamily};
-    `;
+    this.element.className = "m3-fab-menu " + menuSva();
 
     this.itemsContainer = document.createElement("div");
-    this.itemsContainer.style.cssText = `
-      display: flex;
-      flex-direction: column;
-      align-items: flex-end;
-      gap: 8px;
-    `;
+    this.itemsContainer.className = containerSva();
 
     this.toggleBtn = document.createElement("button");
-    this.toggleBtn.style.cssText = `
-      width: 56px;
-      height: 56px;
-      border-radius: ${currentTheme.shapeCornerLarge}px;
-      background-color: ${currentTheme.primaryContainer};
-      color: ${currentTheme.onPrimaryContainer};
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      border: none;
-      cursor: pointer;
-      box-shadow: 0 ${currentTheme.elevationLevel3}px ${currentTheme.elevationLevel4}px rgba(0,0,0,0.2);
-      transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1), background-color 0.2s ease;
-      align-self: flex-end;
-    `;
+    this.toggleBtn.className = toggleBtnSva();
 
     this.toggleIcon = document.createElement("span");
-    this.toggleIcon.className = "material-icons";
+    this.toggleIcon.className = "material-icons " + toggleIconSva();
     this.toggleIcon.textContent = openIcon;
-    this.toggleIcon.style.fontSize = "24px";
-    this.toggleIcon.style.transition = "transform 0.2s ease";
     this.toggleBtn.appendChild(this.toggleIcon);
 
     this.toggleBtn.addEventListener("click", () => this.Toggle());
@@ -72,47 +129,22 @@ export class FabMenu extends BaseElement {
     this.element.appendChild(this.itemsContainer);
     this.element.appendChild(this.toggleBtn);
 
-    document.body.appendChild(this.element);
+    if (typeof document !== "undefined") {
+      document.body.appendChild(this.element);
+    }
   }
 
-  /** Adds a labeled action item to the menu. */
   AddItem(icon: string, label: string, callback: () => void): this {
     const row = document.createElement("div");
-    row.style.cssText = `
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      opacity: 0;
-      transform: translateY(8px);
-      pointer-events: none;
-      transition: opacity 0.15s ease, transform 0.15s ease;
-    `;
+    row.className = rowSva();
 
     const labelChip = document.createElement("span");
+    labelChip.className = chipSva();
     labelChip.textContent = label;
-    labelChip.style.cssText = `
-      background: ${currentTheme.surfaceContainer ?? currentTheme.surface};
-      color: ${currentTheme.onSurface};
-      padding: 6px 12px;
-      border-radius: ${currentTheme.shapeCornerSmall}px;
-      font-size: 0.875rem;
-      box-shadow: 0 ${currentTheme.elevationLevel1}px ${currentTheme.elevationLevel2}px rgba(0,0,0,0.15);
-    `;
 
     const iconBtn = document.createElement("button");
-    iconBtn.style.cssText = `
-      width: 40px;
-      height: 40px;
-      border-radius: ${currentTheme.shapeCornerLarge}px;
-      background: ${currentTheme.secondaryContainer};
-      color: ${currentTheme.onSecondaryContainer};
-      border: none;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 ${currentTheme.elevationLevel1}px ${currentTheme.elevationLevel2}px rgba(0,0,0,0.15);
-    `;
+    iconBtn.className = itemBtnSva();
+
     const iconSpan = document.createElement("span");
     iconSpan.className = "material-icons";
     iconSpan.textContent = icon;
@@ -137,7 +169,6 @@ export class FabMenu extends BaseElement {
     this.toggleIcon.textContent = this.closeIcon;
     this.toggleBtn.style.transform = "rotate(135deg)";
     this.items.forEach((item, i) => {
-      // slight stagger so items animate in sequence rather than all at once
       setTimeout(() => {
         item.row.style.opacity = "1";
         item.row.style.transform = "translateY(0)";
@@ -172,6 +203,6 @@ export class FabMenu extends BaseElement {
   }
 }
 
-export function CreateFabMenu(openIcon = "add", closeIcon = "close"): FabMenu {
+function CreateFabMenu(openIcon = "add", closeIcon = "close"): FabMenu {
   return new FabMenu(openIcon, closeIcon);
 }

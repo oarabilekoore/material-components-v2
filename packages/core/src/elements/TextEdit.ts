@@ -1,4 +1,4 @@
-import { TextElement } from "./text_element.ts";
+import { TextElement } from "./Text.ts";
 
 /** A single or multi-line editable text field. */
 export class TextEditElement extends TextElement {

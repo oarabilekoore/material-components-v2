@@ -1,4 +1,4 @@
-import { BaseElement } from "./base_element.ts";
+import { BaseElement } from "./BaseElement.ts";
 
 /** A draggable slider for numeric input. */
 export class SeekBarElement extends BaseElement {

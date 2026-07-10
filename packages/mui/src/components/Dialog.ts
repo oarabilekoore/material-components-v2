@@ -1,5 +1,159 @@
-import { BaseElement } from "../../../core/src/elements/base_element.ts";
-import { DialogType, currentTheme } from "../theme.ts";
+import { BaseElement } from "../../../core/src/elements/BaseElement.ts";
+import { DialogType } from "../theme.ts";
+import { sva } from "../../../core/src/utils/sva.ts";
+
+const scrimSva = sva({
+  base: {
+    position: "fixed",
+    top: "0",
+    left: "0",
+    right: "0",
+    bottom: "0",
+    backgroundColor: "rgba(0, 0, 0, 0.4)",
+    zIndex: 1999,
+    display: "none",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+});
+
+const dialogSva = sva({
+  base: {
+    backgroundColor: "var(--md-surface)",
+    color: "var(--md-on-surface)",
+    display: "flex",
+    flexDirection: "column",
+    zIndex: 2000,
+    fontFamily: "var(--md-font-family, Roboto, sans-serif)",
+    overflow: "hidden",
+  },
+  variants: {
+    type: {
+      basic: {
+        borderRadius: "28px",
+        padding: "24px",
+        width: "560px",
+        height: "auto",
+        maxWidth: "90vw",
+        maxHeight: "80vh",
+        boxShadow: "0 6px 12px rgba(0,0,0,0.3)",
+        gap: "16px",
+      },
+      "full-screen": {
+        borderRadius: "0",
+        padding: "0",
+        width: "100vw",
+        height: "100vh",
+        maxWidth: "none",
+        maxHeight: "100vh",
+        boxShadow: "none",
+        gap: "0",
+      },
+    },
+  },
+  defaultVariants: {
+    type: "basic",
+  },
+});
+
+const fullScreenHeaderSva = sva({
+  base: {
+    display: "flex",
+    alignItems: "center",
+    height: "64px",
+    padding: "0 8px 0 4px",
+    flexShrink: 0,
+  },
+});
+
+const closeIconSva = sva({
+  base: {
+    cursor: "pointer",
+    fontSize: "24px",
+    width: "48px",
+    height: "48px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+});
+
+const fullScreenTitleSva = sva({
+  base: {
+    flex: "1",
+    fontSize: "1.375rem",
+    fontWeight: "400",
+    paddingLeft: "8px",
+  },
+});
+
+const fullScreenActionsSva = sva({
+  base: {
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
+  },
+});
+
+const basicIconSva = sva({
+  base: {
+    fontSize: "24px",
+    color: "var(--md-secondary)",
+    display: "none",
+  },
+});
+
+const basicTitleSva = sva({
+  base: {
+    fontSize: "1.5rem",
+    fontWeight: "400",
+    lineHeight: "2rem",
+  },
+});
+
+const contentSva = sva({
+  base: {
+    fontSize: "0.875rem",
+    overflowY: "auto",
+    flex: "1",
+  },
+  variants: {
+    type: {
+      basic: {
+        color: "var(--md-on-surface-variant)",
+      },
+      "full-screen": {
+        padding: "16px 24px 24px 24px",
+        color: "var(--md-on-surface-variant)",
+      },
+    },
+  },
+});
+
+const basicActionsSva = sva({
+  base: {
+    display: "flex",
+    justifyContent: "flex-end",
+    gap: "8px",
+    marginTop: "8px",
+    flexShrink: 0,
+  },
+});
+
+const actionBtnSva = sva({
+  base: {
+    padding: "8px 16px",
+    border: "none",
+    background: "transparent",
+    color: "var(--md-primary)",
+    fontSize: "0.875rem",
+    fontWeight: "500",
+    cursor: "pointer",
+    borderRadius: "8px",
+    transition: "background-color 0.2s ease",
+    fontFamily: "var(--md-font-family, Roboto, sans-serif)",
+  },
+});
 
 export class Dialog extends BaseElement {
   private scrim: HTMLElement;
@@ -21,137 +175,63 @@ export class Dialog extends BaseElement {
     this.type = type;
 
     this.scrim = document.createElement("div");
-    this.scrim.style.cssText = `
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: ${currentTheme.scrim}40;
-      z-index: 1999;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      animation: fadeIn 0.2s ease;
-    `;
+    this.scrim.className = scrimSva();
     this.scrim.addEventListener("click", (e) => {
       if (e.target === this.scrim) this.Cancel();
     });
 
-    this.element.className = `m3-dialog m3-dialog-${type}`;
+    this.element.className = `m3-dialog m3-dialog-${type} ` + dialogSva({ type });
     this.element.setAttribute("role", "dialog");
     this.element.setAttribute("aria-modal", "true");
-    this.element.style.cssText = `
-      background: ${currentTheme.surface};
-      color: ${currentTheme.onSurface};
-      border-radius: ${type === "full-screen" ? "0" : `${currentTheme.shapeCornerExtraLarge}px`};
-      padding: ${type === "full-screen" ? "0" : "24px"};
-      width: ${type === "full-screen" ? "100vw" : "560px"};
-      height: ${type === "full-screen" ? "100vh" : "auto"};
-      max-width: ${type === "full-screen" ? "none" : "90vw"};
-      max-height: ${type === "full-screen" ? "100vh" : "80vh"};
-      box-shadow: ${type === "full-screen" ? "none" : `0 ${currentTheme.elevationLevel3}px ${currentTheme.elevationLevel5}px rgba(0,0,0,0.3)`};
-      display: flex;
-      flex-direction: column;
-      gap: ${type === "full-screen" ? "0" : "16px"};
-      z-index: 2000;
-      font-family: ${currentTheme.fontFamily};
-      animation: ${type === "full-screen" ? "slideUp" : "scaleIn"} 0.2s ease;
-      overflow: hidden;
-    `;
 
     if (type === "full-screen") {
-      // --- Full-screen anatomy: Header (close icon, title, confirm action) ---
       this.headerEl = document.createElement("div");
-      this.headerEl.style.cssText = `
-        display: flex;
-        align-items: center;
-        height: 64px;
-        padding: 0 8px 0 4px;
-        flex-shrink: 0;
-      `;
+      this.headerEl.className = fullScreenHeaderSva();
 
       const closeIcon = document.createElement("span");
-      closeIcon.className = "material-icons";
+      closeIcon.className = "material-icons " + closeIconSva();
       closeIcon.textContent = "close";
-      closeIcon.style.cssText = `
-        cursor: pointer;
-        font-size: 24px;
-        width: 48px;
-        height: 48px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      `;
       closeIcon.addEventListener("click", () => this.Cancel());
 
       this.titleEl = document.createElement("div");
-      this.titleEl.style.cssText = `
-        flex: 1;
-        font-size: 1.375rem;
-        font-weight: 400;
-        padding-left: 8px;
-      `;
+      this.titleEl.className = fullScreenTitleSva();
 
       this.actionsEl = document.createElement("div");
-      this.actionsEl.style.cssText = `display: flex; align-items: center; gap: 8px;`;
+      this.actionsEl.className = fullScreenActionsSva();
 
       this.headerEl.appendChild(closeIcon);
       this.headerEl.appendChild(this.titleEl);
       this.headerEl.appendChild(this.actionsEl);
       this.element.appendChild(this.headerEl);
 
-      // icon slot unused for full-screen per spec; kept as a detached no-op element
       this.iconEl = document.createElement("div");
 
       this.contentEl = document.createElement("div");
-      this.contentEl.style.cssText = `
-        flex: 1;
-        overflow-y: auto;
-        padding: 16px 24px 24px 24px;
-        font-size: 0.875rem;
-        color: ${currentTheme.onSurfaceVariant};
-      `;
+      this.contentEl.className = contentSva({ type });
       this.element.appendChild(this.contentEl);
     } else {
-      // --- Basic anatomy: optional Icon, Headline, Supporting text, optional Divider, Buttons ---
       this.iconEl = document.createElement("div");
-      this.iconEl.className = "material-icons";
-      this.iconEl.style.cssText = `
-        font-size: 24px;
-        color: ${currentTheme.secondary};
-        display: none;
-      `;
+      this.iconEl.className = "material-icons " + basicIconSva();
       this.element.appendChild(this.iconEl);
 
       this.titleEl = document.createElement("div");
-      this.titleEl.style.cssText = `
-        font-size: 1.5rem;
-        font-weight: 400;
-        line-height: 2rem;
-      `;
+      this.titleEl.className = basicTitleSva();
       this.element.appendChild(this.titleEl);
 
       this.contentEl = document.createElement("div");
-      this.contentEl.style.cssText = `
-        font-size: 0.875rem;
-        color: ${currentTheme.onSurfaceVariant};
-        overflow-y: auto;
-        flex: 1;
-      `;
+      this.contentEl.className = contentSva({ type });
       this.element.appendChild(this.contentEl);
 
       this.actionsEl = document.createElement("div");
-      this.actionsEl.style.cssText = `
-        display: flex;
-        justify-content: flex-end;
-        gap: 8px;
-        margin-top: 8px;
-        flex-shrink: 0;
-      `;
+      this.actionsEl.className = basicActionsSva();
       this.element.appendChild(this.actionsEl);
     }
 
     this.scrim.appendChild(this.element);
-    document.body.appendChild(this.scrim);
-    this.ensureAnimations();
+    if (typeof document !== "undefined") {
+      document.body.appendChild(this.scrim);
+      this.ensureAnimations();
+    }
   }
 
   private ensureAnimations(): void {
@@ -167,7 +247,6 @@ export class Dialog extends BaseElement {
     }
   }
 
-  /** Sets the optional icon above the headline. Basic dialogs only, per spec anatomy. */
   SetIcon(iconName: string): this {
     if (this.type !== "basic") return this;
     this.iconEl.textContent = iconName;
@@ -190,17 +269,15 @@ export class Dialog extends BaseElement {
     return this;
   }
 
-  /** Appends any control's element directly into the content area. */
   AddContent(el: BaseElement): this {
     this.contentEl.appendChild(el.element);
     return this;
   }
 
-  /** Adds an optional divider, shown per spec when content is scrollable. */
   ShowDivider(): this {
     if (this.divider) return this;
     this.divider = document.createElement("div");
-    this.divider.style.cssText = `height: 1px; background: ${currentTheme.outlineVariant}; flex-shrink: 0;`;
+    this.divider.style.cssText = `height: 1px; background: var(--md-outline-variant); flex-shrink: 0;`;
     this.contentEl.insertAdjacentElement(
       this.type === "full-screen" ? "beforebegin" : "afterend",
       this.divider,
@@ -208,24 +285,13 @@ export class Dialog extends BaseElement {
     return this;
   }
 
-  /** Adds a text-button action. Basic: stacks bottom-right. Full-screen: single confirm action in the header. */
   AddAction(text: string, callback: () => void): this {
     const btn = document.createElement("button");
+    btn.className = actionBtnSva();
     btn.textContent = text;
-    btn.style.cssText = `
-      padding: 8px 16px;
-      border: none;
-      background: transparent;
-      color: ${currentTheme.primary};
-      font-size: 0.875rem;
-      font-weight: 500;
-      cursor: pointer;
-      border-radius: ${currentTheme.shapeCornerSmall}px;
-      transition: background 0.2s ease;
-      font-family: ${currentTheme.fontFamily};
-    `;
+    
     btn.addEventListener("mouseenter", () => {
-      btn.style.backgroundColor = currentTheme.primaryContainer;
+      btn.style.backgroundColor = "var(--md-primary-container)";
     });
     btn.addEventListener("mouseleave", () => {
       btn.style.backgroundColor = "transparent";
@@ -235,7 +301,6 @@ export class Dialog extends BaseElement {
     return this;
   }
 
-  /** Registers a callback for scrim-click / Escape-key dismissal, per spec's cancel behavior. */
   SetOnCancel(callback: () => void): this {
     this._onCancel = callback;
     return this;
@@ -249,16 +314,20 @@ export class Dialog extends BaseElement {
   override Show(): this {
     this._isOpen = true;
     this.scrim.style.display = "flex";
-    document.body.style.overflow = "hidden";
-    document.addEventListener("keydown", this._onKeydown);
+    if (typeof document !== "undefined") {
+      document.body.style.overflow = "hidden";
+      document.addEventListener("keydown", this._onKeydown);
+    }
     return this;
   }
 
   Close(): this {
     this._isOpen = false;
     this.scrim.style.display = "none";
-    document.body.style.overflow = "";
-    document.removeEventListener("keydown", this._onKeydown);
+    if (typeof document !== "undefined") {
+      document.body.style.overflow = "";
+      document.removeEventListener("keydown", this._onKeydown);
+    }
     return this;
   }
 
@@ -271,6 +340,6 @@ export class Dialog extends BaseElement {
   }
 }
 
-export function CreateDialog(type: DialogType = "basic"): Dialog {
+function CreateDialog(type: DialogType = "basic"): Dialog {
   return new Dialog(type);
 }

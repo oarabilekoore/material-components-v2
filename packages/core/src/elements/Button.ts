@@ -1,4 +1,4 @@
-import { BaseElement } from "./base_element.ts";
+import { BaseElement } from "./BaseElement.ts";
 
 /** A tappable button for interacting with the app. */
 export class ButtonElement extends BaseElement {
@@ -112,31 +112,6 @@ export class ButtonElement extends BaseElement {
   /** Change the current text of the control to html-formatted text. */
   SetHtml(str: string) {
     this.element.innerHTML = str;
-    return this;
-  }
-
-  /** Customize the look of the button. */
-  SetStyle(
-    color1 = "sky",
-    color2 = "sky",
-    radius = 0,
-    strokeClr = "sky",
-    strokeWidth = 0,
-    shadow = 0,
-  ) {
-    this.element.style.background =
-      color1 === color2
-        ? color1
-        : `linear-gradient(to bottom, ${color1}, ${color2})`;
-    this.element.style.borderRadius = `${radius}px`;
-    this.element.style.border =
-      strokeWidth > 0 ? `${strokeWidth}px solid ${strokeClr}` : "none";
-
-    if (shadow > 0) {
-      this.element.style.boxShadow = `0px ${shadow}px ${shadow * 2}px rgba(0,0,0,0.3)`;
-    } else {
-      this.element.style.boxShadow = "none";
-    }
     return this;
   }
 

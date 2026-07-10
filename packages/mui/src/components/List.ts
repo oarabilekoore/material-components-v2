@@ -1,5 +1,5 @@
-import { BaseElement } from "../../../core/src/elements/base_element.ts";
-import { LayoutElement } from "../../../core/src/elements/layout_element.ts";
+import { BaseElement } from "../../../core/src/elements/BaseElement.ts";
+import { LayoutElement } from "../../../core/src/elements/Layout.ts";
 import { currentTheme } from "../theme.ts";
 
 export class List extends BaseElement {
@@ -19,10 +19,16 @@ export class List extends BaseElement {
   }
 }
 
-export function CreateList(): List {
+function CreateList(): List {
   return new List();
 }
 
+/**
+ * AddList function.
+ * @param {LayoutElement} parent - The parent parameter
+ * @returns {List}
+ *
+ */
 export function AddList(parent: LayoutElement): List {
   const list = CreateList();
   parent.AddChild(list);

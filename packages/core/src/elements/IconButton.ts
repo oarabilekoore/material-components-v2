@@ -1,6 +1,6 @@
 import { InteractiveElement } from "../../../core/src/elements/interactive_element.ts";
 import { IconElement } from "../../../core/src/elements/icon_element.ts";
-import { LayoutElement } from "../../../core/src/elements/layout_element.ts";
+import { LayoutElement } from "../../../core/src/elements/Layout.ts";
 import { currentTheme } from "../theme.ts";
 
 export class IconButton extends InteractiveElement {
@@ -45,10 +45,17 @@ export class IconButton extends InteractiveElement {
   }
 }
 
-export function CreateIconButton(icon: string): IconButton {
+function CreateIconButton(icon: string): IconButton {
   return new IconButton(icon);
 }
 
+/**
+ * AddIconButton function.
+ * @param {LayoutElement} parent - The parent parameter
+ * @param {string} icon - The icon parameter
+ * @returns {IconButton}
+ *
+ */
 export function AddIconButton(parent: LayoutElement, icon: string): IconButton {
   const btn = CreateIconButton(icon);
   parent.AddChild(btn);

@@ -1,113 +1,145 @@
-import { BaseElement } from "../../../core/src/elements/base_element.ts";
-import { LayoutElement } from "../../../core/src/elements/layout_element.ts";
-import { FabSize, currentTheme } from "../theme.ts";
+import { BaseElement } from "../../../core/src/elements/BaseElement.ts";
+import { LayoutElement } from "../../../core/src/elements/Layout.ts";
+import { FabSize } from "../theme.ts";
+import { sva } from "../../../core/src/utils/sva.ts";
+import { attachRipple } from "../../../core/src/utils/ripple.ts";
+
+const extFabSva = sva({
+  base: {
+    backgroundColor: "var(--md-primary-container)",
+    color: "var(--md-on-primary-container)",
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: "12px",
+    border: "none",
+    cursor: "pointer",
+    boxShadow: "0 6px 10px rgba(0,0,0,0.15)",
+    transition: "box-shadow 0.2s ease, background-color 0.2s ease, padding 0.2s ease, width 0.2s ease",
+    fontFamily: "var(--md-font-family, Roboto, sans-serif)",
+    whiteSpace: "nowrap",
+    overflow: "hidden",
+  },
+  variants: {
+    size: {
+      small: {
+        height: "56px",
+        padding: "0 16px",
+        borderRadius: "12px",
+      },
+      medium: {
+        height: "80px",
+        padding: "0 26px",
+        borderRadius: "16px",
+      },
+      large: {
+        height: "96px",
+        padding: "0 32px",
+        borderRadius: "28px",
+      },
+    },
+  },
+  defaultVariants: {
+    size: "medium",
+  },
+});
+
+const iconSva = sva({
+  base: {
+    flexShrink: "0",
+  },
+  variants: {
+    size: {
+      small: { fontSize: "24px" },
+      medium: { fontSize: "28px" },
+      large: { fontSize: "36px" },
+    },
+  },
+});
+
+const labelSva = sva({
+  base: {
+    fontWeight: "500",
+    transition: "max-width 0.2s ease, opacity 0.15s ease, margin 0.2s ease",
+    overflow: "hidden",
+  },
+  variants: {
+    size: {
+      small: { fontSize: "0.875rem" },
+      medium: { fontSize: "1rem" },
+      large: { fontSize: "1.15rem" },
+    },
+    extended: {
+      true: {
+        maxWidth: "300px",
+        opacity: "1",
+      },
+      false: {
+        maxWidth: "0px",
+        opacity: "0",
+      },
+    },
+  },
+});
 
 export class ExtendedFab extends BaseElement {
   private _size: FabSize;
   private iconEl: HTMLElement;
   private labelEl: HTMLSpanElement;
   private _extended = true;
+  private _svaClass = "";
 
   constructor(icon: string, label: string, size: FabSize = "medium") {
     super("button");
     this._size = size;
-    this.element.className = `m3-extended-fab m3-extended-fab-${size}`;
-
-    const sizeMap: Record<
-      FabSize,
-      {
-        height: string;
-        iconSize: string;
-        fontSize: string;
-        padding: string;
-        radius: number;
-      }
-    > = {
-      small: {
-        height: "56px",
-        iconSize: "24px",
-        fontSize: "0.875rem",
-        padding: "0 16px",
-        radius: currentTheme.shapeCornerLarge,
-      },
-      medium: {
-        height: "80px",
-        iconSize: "28px",
-        fontSize: "1rem",
-        padding: "0 26px",
-        radius: currentTheme.shapeCornerExtraLarge,
-      },
-      large: {
-        height: "96px",
-        iconSize: "36px",
-        fontSize: "1.15rem",
-        padding: "0 32px",
-        radius: currentTheme.shapeCornerExtraLarge,
-      },
-    };
-    const s = sizeMap[size];
-
-    this.element.style.cssText = `
-      height: ${s.height};
-      padding: ${s.padding};
-      border-radius: ${s.radius}px;
-      background-color: ${currentTheme.primaryContainer};
-      color: ${currentTheme.onPrimaryContainer};
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 12px;
-      border: none;
-      cursor: pointer;
-      box-shadow: 0 ${currentTheme.elevationLevel3}px ${currentTheme.elevationLevel4}px rgba(0,0,0,0.2);
-      transition: box-shadow 0.2s ease, background-color 0.2s ease, padding 0.2s ease, width 0.2s ease;
-      font-family: ${currentTheme.fontFamily};
-      white-space: nowrap;
-      overflow: hidden;
-    `;
+    
+    this.applyVariant();
 
     this.iconEl = document.createElement("span");
-    this.iconEl.className = "material-icons";
+    this.iconEl.className = "material-icons " + iconSva({ size });
     this.iconEl.textContent = icon;
-    this.iconEl.style.fontSize = s.iconSize;
-    this.iconEl.style.flexShrink = "0";
 
     this.labelEl = document.createElement("span");
     this.labelEl.textContent = label;
-    this.labelEl.style.fontSize = s.fontSize;
-    this.labelEl.style.fontWeight = "500";
-    this.labelEl.style.transition =
-      "max-width 0.2s ease, opacity 0.15s ease, margin 0.2s ease";
-    this.labelEl.style.maxWidth = "300px";
-    this.labelEl.style.opacity = "1";
-    this.labelEl.style.overflow = "hidden";
 
     this.element.appendChild(this.iconEl);
     this.element.appendChild(this.labelEl);
+    
+    this.updateLabelState();
 
     this.element.addEventListener("mouseenter", () => {
-      this.element.style.boxShadow = `0 ${currentTheme.elevationLevel4}px ${currentTheme.elevationLevel5}px rgba(0,0,0,0.3)`;
+      this.element.style.boxShadow = "0 8px 16px rgba(0,0,0,0.25)";
     });
     this.element.addEventListener("mouseleave", () => {
-      this.element.style.boxShadow = `0 ${currentTheme.elevationLevel3}px ${currentTheme.elevationLevel4}px rgba(0,0,0,0.2)`;
+      this.element.style.boxShadow = "0 6px 10px rgba(0,0,0,0.15)";
     });
+
+    attachRipple(this.element);
   }
 
-  /** Shows the text label alongside the icon (default state). */
+  private applyVariant() {
+    if (this._svaClass) {
+      this.element.classList.remove(this._svaClass);
+    }
+    this._svaClass = extFabSva({ size: this._size });
+    this.element.classList.add(this._svaClass);
+  }
+
+  private updateLabelState() {
+    this.labelEl.className = labelSva({ size: this._size, extended: this._extended });
+  }
+
   Extend(): this {
     if (this._extended) return this;
     this._extended = true;
-    this.labelEl.style.maxWidth = "300px";
-    this.labelEl.style.opacity = "1";
+    this.updateLabelState();
     return this;
   }
 
-  /** Collapses to icon-only, matching Android's shrink() behavior (e.g. on scroll). */
   Shrink(): this {
     if (!this._extended) return this;
     this._extended = false;
-    this.labelEl.style.maxWidth = "0";
-    this.labelEl.style.opacity = "0";
+    this.updateLabelState();
     return this;
   }
 
@@ -125,7 +157,7 @@ export class ExtendedFab extends BaseElement {
   }
 }
 
-export function CreateExtendedFab(
+function CreateExtendedFab(
   icon: string,
   label: string,
   size: FabSize = "medium",
@@ -133,6 +165,15 @@ export function CreateExtendedFab(
   return new ExtendedFab(icon, label, size);
 }
 
+/**
+ * AddExtendedFab function.
+ * @param {LayoutElement} parent - The parent parameter
+ * @param {string} icon - The icon parameter
+ * @param {string} label - The label parameter
+ * @param {FabSize} size - The size parameter
+ * @returns {ExtendedFab}
+ *
+ */
 export function AddExtendedFab(
   parent: LayoutElement,
   icon: string,

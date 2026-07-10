@@ -1,4 +1,4 @@
-import { BaseElement } from "./base_element.ts";
+import { BaseElement } from "./BaseElement.ts";
 
 export type IconFont =
   | "material-icons"
@@ -42,6 +42,6 @@ export class IconElement extends BaseElement {
   }
 }
 
-export function CreateIcon(name: string, font: IconFont = "material-icons"): IconElement {
+function CreateIcon(name: string, font: IconFont = "material-icons"): IconElement {
   return new IconElement(name, font);
 }

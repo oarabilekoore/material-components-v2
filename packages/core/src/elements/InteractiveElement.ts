@@ -1,4 +1,4 @@
-import { BaseElement } from "./base_element.ts";
+import { BaseElement } from "./BaseElement.ts";
 import { ElevationShadow } from "./helper.ts";
 
 export type InteractionState = "hover" | "focus" | "pressed" | "dragged";

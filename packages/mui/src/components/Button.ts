@@ -1,59 +1,119 @@
-import { BaseElement } from "../../../core/src/elements/base_element.ts";
-import { LayoutElement } from "../../../core/src/elements/layout_element.ts";
-import { ButtonVariant, currentTheme } from "../theme.ts";
+import { BaseElement } from "../../../core/src/elements/BaseElement.ts";
+import { LayoutElement } from "../../../core/src/elements/Layout.ts";
+import { ButtonVariant } from "../theme.ts";
+import { sva } from "../../../core/src/utils/sva.ts";
+
+import { attachRipple } from "../../../core/src/utils/ripple.ts";
+
+const buttonSva = sva({
+  base: {
+    fontFamily: "var(--md-font-family, Roboto, sans-serif)",
+    fontSize: "0.875rem",
+    fontWeight: "500",
+    borderRadius: "9999px",
+    padding: "10px 24px",
+    cursor: "pointer",
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: "8px",
+    border: "none",
+    outline: "none",
+    transition: "background-color 0.2s ease, box-shadow 0.2s ease, color 0.2s ease",
+  },
+  variants: {
+    variant: {
+      elevated: {
+        backgroundColor: "var(--md-surface-container, var(--md-surface))",
+        color: "var(--md-primary)",
+        boxShadow: "0 1px 3px rgba(0,0,0,0.15)",
+        "&:hover": {
+          backgroundColor: "var(--md-primary)",
+          color: "var(--md-on-primary)",
+        }
+      },
+      filled: {
+        backgroundColor: "var(--md-primary)",
+        color: "var(--md-on-primary)",
+        "&:hover": {
+          boxShadow: "0 1px 3px rgba(0,0,0,0.15)",
+          opacity: "0.9",
+        }
+      },
+      "filled-tonal": {
+        backgroundColor: "var(--md-secondary-container)",
+        color: "var(--md-on-secondary-container)",
+        "&:hover": {
+          backgroundColor: "var(--md-secondary)",
+          color: "var(--md-on-secondary)",
+        }
+      },
+      outlined: {
+        backgroundColor: "transparent",
+        color: "var(--md-primary)",
+        border: "1px solid var(--md-outline)",
+        "&:hover": {
+          backgroundColor: "var(--md-surface-variant)",
+        }
+      },
+      text: {
+        backgroundColor: "transparent",
+        color: "var(--md-primary)",
+        "&:hover": {
+          backgroundColor: "var(--md-surface-variant)",
+        }
+      },
+    },
+  },
+  defaultVariants: {
+    variant: "filled",
+  },
+});
 
 export class Button extends BaseElement {
   private _variant: ButtonVariant;
+  private _svaClass = "";
 
   constructor(
     text: string,
     variant: ButtonVariant = "filled",
-    _options?: string,
+    icon?: string,
   ) {
     super("button");
     this._variant = variant;
-    this.element.className = `m3-button m3-button-${variant}`;
-    this.element.textContent = text;
-    this.element.style.fontFamily = currentTheme.fontFamily;
-    this.element.style.fontSize = "0.875rem";
-    this.element.style.fontWeight = "500";
-    this.element.style.borderRadius = `${currentTheme.shapeCornerFull}px`;
-    this.element.style.padding = "10px 24px";
-    this.element.style.cursor = "pointer";
-    this.element.style.display = "inline-flex";
-    this.element.style.alignItems = "center";
-    this.element.style.justifyContent = "center";
-    this.element.style.gap = "8px";
-    this.element.style.border = "none";
+    
+    if (icon) {
+      const iconSpan = document.createElement("span");
+      iconSpan.className = "material-icons";
+      iconSpan.textContent = icon;
+      iconSpan.style.fontSize = "1.125rem"; // 18px typical for buttons
+      this.element.appendChild(iconSpan);
+    }
+
+    const textSpan = document.createElement("span");
+    textSpan.textContent = text;
+    this.element.appendChild(textSpan);
+
     this.applyVariant(variant);
+    attachRipple(this.element);
   }
 
   private applyVariant(variant: ButtonVariant): void {
-    switch (variant) {
-      case "elevated":
-        this.element.style.backgroundColor =
-          currentTheme.surfaceContainer || currentTheme.surface;
-        this.element.style.color = currentTheme.primary;
-        this.element.style.boxShadow = `0 ${currentTheme.elevationLevel1}px ${currentTheme.elevationLevel2}px rgba(0,0,0,0.15)`;
-        break;
-      case "filled":
-        this.element.style.backgroundColor = currentTheme.primary;
-        this.element.style.color = currentTheme.onPrimary;
-        break;
-      case "filled-tonal":
-        this.element.style.backgroundColor = currentTheme.secondaryContainer;
-        this.element.style.color = currentTheme.onSecondaryContainer;
-        break;
-      case "outlined":
-        this.element.style.backgroundColor = "transparent";
-        this.element.style.color = currentTheme.primary;
-        this.element.style.border = `1px solid ${currentTheme.outline}`;
-        break;
-      case "text":
-        this.element.style.backgroundColor = "transparent";
-        this.element.style.color = currentTheme.primary;
-        break;
+    if (this._svaClass) {
+      this.element.classList.remove(this._svaClass);
     }
+    this._svaClass = buttonSva({ variant });
+    this.element.classList.add(this._svaClass);
+  }
+
+  SetVariant(variant: ButtonVariant): this {
+    this._variant = variant;
+    this.applyVariant(variant);
+    return this;
+  }
+
+  GetVariant(): ButtonVariant {
+    return this._variant;
   }
 
   SetOnClick(callback: (e: MouseEvent) => void): this {
@@ -66,7 +126,7 @@ export class Button extends BaseElement {
   }
 }
 
-export function CreateButton(
+function CreateButton(
   text: string,
   variant: ButtonVariant = "filled",
   options?: string,
@@ -74,6 +134,15 @@ export function CreateButton(
   return new Button(text, variant, options);
 }
 
+/**
+ * AddButton function.
+ * @param {LayoutElement} parent - The parent parameter
+ * @param {string} text - The text parameter
+ * @param {ButtonVariant} variant - The variant parameter
+ * @param {string} options - The options parameter
+ * @returns {Button}
+ *
+ */
 export function AddButton(
   parent: LayoutElement,
   text: string,

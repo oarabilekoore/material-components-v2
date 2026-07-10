@@ -1,16 +1,16 @@
-import { LayoutElement, LayoutType } from "./layout_element.ts";
-import { ButtonElement } from "./button_element.ts";
-import { TextElement } from "./text_element.ts";
-import { ImageElement } from "./image_element.ts";
-import { CheckBoxElement } from "./checkbox_element.ts";
-import { SwitchElement } from "./switch_element.ts";
-import { SeekBarElement } from "./seekbar_element.ts";
-import { SpinnerElement } from "./spinner_element.ts";
-import { TextEditElement } from "./textedit_element.ts";
-import { ListElement } from "./list_element.ts";
-import { ScrollerElement } from "./scroller_element.ts";
-import { WebViewElement } from "./webview_element.ts";
-import { VideoViewElement } from "./videoview_element.ts";
+import { LayoutElement, LayoutType } from "./Layout.ts";
+import { ButtonElement } from "./Button.ts";
+import { TextElement } from "./Text.ts";
+import { ImageElement } from "./Image.ts";
+import { CheckBoxElement } from "./CheckBox.ts";
+import { SwitchElement } from "./Switch.ts";
+import { SeekBarElement } from "./Seekbar.ts";
+import { SpinnerElement } from "./Spinner.ts";
+import { TextEditElement } from "./TextEdit.ts";
+import { ListElement } from "./List.ts";
+import { ScrollerElement } from "./Scroller.ts";
+import { WebViewElement } from "./WebView.ts";
+import { VideoViewElement } from "./Video.ts";
 type SizeOptions = { px?: boolean };
 
 /** Creates a Layout container. */
@@ -22,6 +22,13 @@ export function CreateLayout(
   return LayoutElement.withOptions(layout, options);
 }
 //** Mounts a Layout as the app's root, appending it to the #root element. */
+/**
+ * MountRoot function.
+ * @param {LayoutElement} layout - The layout parameter
+ * @param {any} rootId - The rootId parameter
+ * @returns {boolean}
+ *
+ */
 export function MountRoot(layout: LayoutElement, rootId = "root"): boolean {
   const root = document.getElementById(rootId);
   if (!root) {

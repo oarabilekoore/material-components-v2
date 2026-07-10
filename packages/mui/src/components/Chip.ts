@@ -1,8 +1,43 @@
-import { BaseElement } from "../../../core/src/elements/base_element.ts";
-import { LayoutElement } from "../../../core/src/elements/layout_element.ts";
-import { currentTheme, ChipVariant } from "../theme.ts";
+import { BaseElement } from "../../../core/src/elements/BaseElement.ts";
+import { LayoutElement } from "../../../core/src/elements/Layout.ts";
+import { ChipVariant } from "../theme.ts";
+import { sva } from "../../../core/src/utils/sva.ts";
 
-const CHIP_HEIGHT = 32;
+import { attachRipple } from "../../../core/src/utils/ripple.ts";
+
+const chipSva = sva({
+  base: {
+    display: "inline-flex",
+    alignItems: "center",
+    height: "32px",
+    borderRadius: "8px",
+    padding: "0 16px",
+    gap: "8px",
+    cursor: "pointer",
+    fontFamily: "var(--md-font-family, Roboto, sans-serif)",
+    fontSize: "14px",
+    boxSizing: "border-box",
+    userSelect: "none",
+    transition: "background-color 0.1s ease, border-color 0.1s ease",
+  },
+  variants: {
+    selected: {
+      true: {
+        backgroundColor: "var(--md-secondary-container)",
+        border: "none",
+        color: "var(--md-on-secondary-container)",
+      },
+      false: {
+        backgroundColor: "transparent",
+        border: "1px solid var(--md-outline)",
+        color: "var(--md-on-surface-variant)",
+      },
+    },
+  },
+  defaultVariants: {
+    selected: false,
+  },
+});
 
 export class Chip extends BaseElement {
   private variant: ChipVariant;
@@ -11,34 +46,23 @@ export class Chip extends BaseElement {
   private removeBtn?: HTMLSpanElement;
   private onRemove?: () => void;
   private onSelect?: (selected: boolean) => void;
+  private _svaClass = "";
 
   constructor(label: string, variant: ChipVariant = "assist") {
     super("div");
     this.variant = variant;
-    this.element.className = "m3-chip";
-    this.element.style.display = "inline-flex";
-    this.element.style.alignItems = "center";
-    this.element.style.height = `${CHIP_HEIGHT}px`;
-    this.element.style.borderRadius = `${currentTheme.shapeCornerSmall}px`;
-    this.element.style.padding = "0 16px";
-    this.element.style.gap = "8px";
-    this.element.style.cursor = "pointer";
-    this.element.style.fontFamily = currentTheme.fontFamily;
-    this.element.style.fontSize = "14px";
-    this.element.style.boxSizing = "border-box";
-    this.element.style.userSelect = "none";
-    this.element.style.transition =
-      "background-color 0.1s ease, border-color 0.1s ease";
-
+    
     this.labelSpan = document.createElement("span");
     this.labelSpan.textContent = label;
     this.element.appendChild(this.labelSpan);
 
     if (variant === "input") {
       this.removeBtn = document.createElement("span");
-      this.removeBtn.textContent = "✕";
-      this.removeBtn.style.fontSize = "16px";
+      this.removeBtn.className = "material-icons";
+      this.removeBtn.textContent = "close";
+      this.removeBtn.style.fontSize = "18px";
       this.removeBtn.style.marginLeft = "4px";
+      this.removeBtn.style.cursor = "pointer";
       this.removeBtn.addEventListener("click", (e) => {
         e.stopPropagation();
         this.onRemove?.();
@@ -56,19 +80,15 @@ export class Chip extends BaseElement {
     });
 
     this.updateStyle();
+    attachRipple(this.element);
   }
 
   private updateStyle() {
-    if (this.selected) {
-      this.element.style.backgroundColor = currentTheme.secondaryContainer;
-      this.element.style.border = "none";
-      this.labelSpan.style.color = currentTheme.onSecondaryContainer;
-    } else {
-      this.element.style.backgroundColor = "transparent";
-      this.element.style.border = `1px solid ${currentTheme.outline}`;
-      this.labelSpan.style.color = currentTheme.onSurfaceVariant;
+    if (this._svaClass) {
+      this.element.classList.remove(this._svaClass);
     }
-    if (this.removeBtn) this.removeBtn.style.color = this.labelSpan.style.color;
+    this._svaClass = chipSva({ selected: this.selected });
+    this.element.classList.add(this._svaClass);
   }
 
   SetSelected(selected: boolean): this {
@@ -101,13 +121,21 @@ export class Chip extends BaseElement {
   }
 }
 
-export function CreateChip(
+function CreateChip(
   label: string,
   variant: ChipVariant = "assist",
 ): Chip {
   return new Chip(label, variant);
 }
 
+/**
+ * AddChip function.
+ * @param {LayoutElement} parent - The parent parameter
+ * @param {string} label - The label parameter
+ * @param {ChipVariant} variant - The variant parameter
+ * @returns {Chip}
+ *
+ */
 export function AddChip(
   parent: LayoutElement,
   label: string,

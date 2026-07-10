@@ -1,4 +1,4 @@
-import { BaseElement } from "../../../core/src/elements/base_element.ts";
+import { BaseElement } from "../../../core/src/elements/BaseElement.ts";
 import { DrawerVariant, currentTheme } from "../theme.ts";
 
 export class NavigationDrawer extends BaseElement {
@@ -71,6 +71,7 @@ export class NavigationDrawer extends BaseElement {
       iconSpan.textContent = icon;
       iconSpan.style.fontSize = "24px";
       iconSpan.style.width = "24px";
+      iconSpan.className = "material-icons";
       item.appendChild(iconSpan);
     }
     const labelSpan = document.createElement("span");
@@ -145,7 +146,7 @@ export class NavigationDrawer extends BaseElement {
   }
 }
 
-export function CreateNavigationDrawer(
+function CreateNavigationDrawer(
   variant: DrawerVariant = "modal",
 ): NavigationDrawer {
   return new NavigationDrawer(variant);

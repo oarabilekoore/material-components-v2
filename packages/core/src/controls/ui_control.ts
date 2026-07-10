@@ -1,4 +1,4 @@
-import { BaseElement } from "../elements/base_element.ts";
+import { BaseElement } from "../elements/BaseElement.ts";
 
 /** Shows the app UI. */
 export function Show() {
@@ -21,11 +21,6 @@ export function SetTextSize(
   mode: "px" | "em" | "rem" | "%" = "px",
 ) {
   document.documentElement.style.fontSize = `${size}${mode}`;
-}
-
-/** Forces a layout reflow, useful after bulk DOM changes. */
-export function UpdateUI() {
-  void document.body.offsetHeight;
 }
 
 /** Dispatches a synthetic click at (x, y) on a control. */

@@ -1,5 +1,5 @@
 import { OverlayElement } from "../../../core/src/elements/overlay_element.ts";
-import { BaseElement } from "../../../core/src/elements/base_element.ts";
+import { BaseElement } from "../../../core/src/elements/BaseElement.ts";
 import { DialogType, currentTheme } from "../theme.ts";
 
 export class Dialog extends OverlayElement {
@@ -237,6 +237,6 @@ export class Dialog extends OverlayElement {
   }
 }
 
-export function CreateDialog(type: DialogType = "basic"): Dialog {
+function CreateDialog(type: DialogType = "basic"): Dialog {
   return new Dialog(type);
 }

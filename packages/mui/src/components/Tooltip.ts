@@ -1,4 +1,4 @@
-import { BaseElement } from "../../../core/src/elements/base_element.ts";
+import { BaseElement } from "../../../core/src/elements/BaseElement.ts";
 import { currentTheme } from "../theme.ts";
 
 export class Tooltip extends BaseElement {
@@ -16,7 +16,7 @@ export class Tooltip extends BaseElement {
     this.element.style.backgroundColor = currentTheme.inverseSurface;
     this.element.style.color = currentTheme.inverseOnSurface;
     this.element.style.padding = "4px 8px";
-    this.element.style.borderRadius = `${currentTheme.shapeCornerExtraSmall}px`;
+    this.element.style.borderRadius = `${currentTheme.shapeCornerExtraSmall * (currentTheme.shapeScale || 1)}px`;
     this.element.style.fontSize = "12px";
     this.element.style.fontFamily = currentTheme.fontFamily;
     this.element.style.pointerEvents = "none";
@@ -31,15 +31,17 @@ export class Tooltip extends BaseElement {
     this._target.element.addEventListener("mouseleave", () => this.Hide());
   }
 
-  override Show(): void {
+  override Show(): this {
     const rect = this._target.element.getBoundingClientRect();
     this.element.style.top = `${rect.bottom + window.scrollY + 4}px`;
     this.element.style.left = `${rect.left + window.scrollX + rect.width / 2 - this.element.offsetWidth / 2}px`;
     this.element.style.opacity = "1";
+    return this;
   }
 
-  override Hide(): void {
+  override Hide(): this {
     this.element.style.opacity = "0";
+    return this;
   }
 
   override GetType(): string {
@@ -47,6 +49,17 @@ export class Tooltip extends BaseElement {
   }
 }
 
-export function CreateTooltip(target: BaseElement, text: string): Tooltip {
+function CreateTooltip(target: BaseElement, text: string): Tooltip {
+  return new Tooltip(target, text);
+}
+
+/**
+ * AddTooltip function.
+ * @param {BaseElement} target - The target parameter
+ * @param {string} text - The text parameter
+ * @returns {Tooltip}
+ *
+ */
+export function AddTooltip(target: BaseElement, text: string): Tooltip {
   return new Tooltip(target, text);
 }

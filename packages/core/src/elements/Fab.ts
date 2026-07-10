@@ -1,6 +1,6 @@
 import { InteractiveElement } from "../../../core/src/elements/interactive_element.ts";
 import { IconElement } from "../../../core/src/elements/icon_element.ts";
-import { LayoutElement } from "../../../core/src/elements/layout_element.ts";
+import { LayoutElement } from "../../../core/src/elements/Layout.ts";
 import { FabSize, currentTheme } from "../theme.ts";
 
 export class Fab extends InteractiveElement {
@@ -59,10 +59,18 @@ export class Fab extends InteractiveElement {
   }
 }
 
-export function CreateFab(icon: string, size: FabSize = "medium"): Fab {
+function CreateFab(icon: string, size: FabSize = "medium"): Fab {
   return new Fab(icon, size);
 }
 
+/**
+ * AddFab function.
+ * @param {LayoutElement} parent - The parent parameter
+ * @param {string} icon - The icon parameter
+ * @param {FabSize} size - The size parameter
+ * @returns {Fab}
+ *
+ */
 export function AddFab(
   parent: LayoutElement,
   icon: string,

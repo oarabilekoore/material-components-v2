@@ -1,5 +1,5 @@
-import { BaseElement } from "../../../core/src/elements/base_element.ts";
-import { LayoutElement } from "../../../core/src/elements/layout_element.ts";
+import { BaseElement } from "../../../core/src/elements/BaseElement.ts";
+import { LayoutElement } from "../../../core/src/elements/Layout.ts";
 import { currentTheme } from "../theme.ts";
 
 export class Radio extends BaseElement {
@@ -56,7 +56,7 @@ export class Radio extends BaseElement {
   }
 }
 
-export function CreateRadio(
+function CreateRadio(
   name: string,
   value: string,
   label: string = "",
@@ -64,6 +64,15 @@ export function CreateRadio(
   return new Radio(name, value, label);
 }
 
+/**
+ * AddRadio function.
+ * @param {LayoutElement} parent - The parent parameter
+ * @param {string} name - The name parameter
+ * @param {string} value - The value parameter
+ * @param {string} label - The label parameter
+ * @returns {Radio}
+ *
+ */
 export function AddRadio(
   parent: LayoutElement,
   name: string,

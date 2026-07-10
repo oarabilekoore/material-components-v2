@@ -1,3 +1,5 @@
+import { attachStyleObject } from "../utils/sva.ts";
+
 export type Visibility = "Show" | "Hide" | "Gone";
 
 /** Base wrapper around any HTML element. All controls extend this. */
@@ -7,6 +9,28 @@ export class BaseElement {
 
   private goneDisplay = "";
   private longTouchTimer: number | undefined;
+  private _appliedStyleClass = "";
+
+  /** Attaches CSS declaration/object style rules directly to the dynamic stylesheet */
+  SetStyle(
+    style: Partial<CSSStyleDeclaration> | Record<string, any> | string,
+    ..._args: any[]
+  ): this {
+    if (typeof style === "string") {
+      return this;
+    }
+    if (style && typeof style === "object") {
+      if (this._appliedStyleClass) {
+        this.element.classList.remove(this._appliedStyleClass);
+      }
+      const className = attachStyleObject(style);
+      this._appliedStyleClass = className;
+      if (className) {
+        this.element.classList.add(className);
+      }
+    }
+    return this;
+  }
 
   constructor(element: string) {
     this.element = document.createElement(element);

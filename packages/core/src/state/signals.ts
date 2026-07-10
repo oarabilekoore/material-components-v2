@@ -27,6 +27,13 @@ export function CreateSignal<T>(initialValue: T): Signal<T> {
     },
   };
 }
+/**
+ * Bind function.
+ * @param {Signal<T>} signal - The signal parameter
+ * @param {(value: T) => void} apply - The apply parameter
+ * @returns {Unsubscribe}
+ *
+ */
 export function Bind<T>(
   signal: Signal<T>,
   apply: (value: T) => void,
@@ -35,6 +42,13 @@ export function Bind<T>(
   return signal.Subscribe(apply);
 }
 
+/**
+ * CreateComputed function.
+ * @param {Signal<T>} source - The source parameter
+ * @param {(value: T) => R} compute - The compute parameter
+ * @returns {Signal<R>}
+ *
+ */
 export function CreateComputed<T, R>(
   source: Signal<T>,
   compute: (value: T) => R,

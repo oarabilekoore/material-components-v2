@@ -1,0 +1,16 @@
+{
+  "name": "material-deno",
+  "version": "0.1.0",
+  "description": "A complete Material Design 3 UI framework for web apps, written in TypeScript.",
+  "type": "module",
+  "exports": {
+    ".": "./packages/mui/index.ts",
+    "./core": "./packages/core/index.ts"
+  },
+  "dependencies": {
+    "@material/material-color-utilities": "^0.3.0"
+  },
+  "devDependencies": {
+    "vite": "^8.1.3"
+  }
+}

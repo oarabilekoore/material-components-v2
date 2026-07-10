@@ -1,4 +1,4 @@
-import { BaseElement } from "./base_element.ts";
+import { BaseElement } from "./BaseElement.ts";
 
 /** A control that displays text, e.g. labels. */
 export class TextElement extends BaseElement {

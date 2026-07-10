@@ -1,4 +1,4 @@
-import { BaseElement } from "./base_element.ts";
+import { BaseElement } from "./BaseElement.ts";
 
 export type LayoutType = "Linear" | "Absolute" | "Frame" | "Card";
 export type Orientation = "Horizontal" | "Vertical";
@@ -100,6 +100,12 @@ export class LayoutElement extends BaseElement {
     return this;
   }
 
+  Clear() {
+    this.children.forEach(c => this.element.removeChild(c.element));
+    this.children = [];
+    return this;
+  }
+
   GetChildOrder(child: BaseElement): number {
     return this.children.indexOf(child);
   }
@@ -184,6 +190,13 @@ export class LayoutElement extends BaseElement {
       ].includes(o),
     );
     if (gravityTokens.length) this.SetGravity(gravityTokens.join(","));
+
+    // Theme reactivity
+    if (opts.includes("Surface")) this.element.style.backgroundColor = "var(--md-surface)";
+    else if (opts.includes("SurfaceContainer")) this.element.style.backgroundColor = "var(--md-surface-container)";
+    else if (opts.includes("SurfaceContainerLow")) this.element.style.backgroundColor = "var(--md-surface-container-low)";
+    else if (opts.includes("SurfaceContainerHigh")) this.element.style.backgroundColor = "var(--md-surface-container-high)";
+    else if (opts.includes("SurfaceVariant")) this.element.style.backgroundColor = "var(--md-surface-variant)";
   }
 
   // ---------- Card-specific ----------

@@ -1,5 +1,5 @@
-import { LayoutElement } from "./layout_element.ts";
-import { BaseElement } from "./base_element.ts";
+import { LayoutElement } from "./Layout.ts";
+import { BaseElement } from "./BaseElement.ts";
 
 /** A scrollable vertical list of items. */
 export class ListElement extends LayoutElement {
@@ -16,8 +16,8 @@ export class ListElement extends LayoutElement {
   }
 
   /** Removes all items. */
-  Clear() {
-    this.element.innerHTML = "";
+  override Clear() {
+    super.Clear();
     return this;
   }
 }

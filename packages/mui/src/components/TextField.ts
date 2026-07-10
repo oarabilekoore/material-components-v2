@@ -1,115 +1,268 @@
-import { BaseElement } from "../../../core/src/elements/base_element.ts";
-import { LayoutElement } from "../../../core/src/elements/layout_element.ts";
-import { currentTheme, TextFieldVariant } from "../theme.ts";
+import { BaseElement } from "../../../core/src/elements/BaseElement.ts";
+import { LayoutElement } from "../../../core/src/elements/Layout.ts";
+import { TextFieldVariant } from "../theme.ts";
+import { sva } from "../../../core/src/utils/sva.ts";
 
-const FIELD_HEIGHT = 56;
+const textFieldSva = sva({
+  base: {
+    display: "inline-flex",
+    flexDirection: "column",
+    position: "relative",
+    width: "280px", // M3 default min-width
+    fontFamily: "var(--md-font-family, Roboto, sans-serif)",
+  },
+});
+
+const fieldWrapSva = sva({
+  base: {
+    position: "relative",
+    height: "56px",
+    display: "flex",
+    alignItems: "center",
+    boxSizing: "border-box",
+    transition: "border-color 0.1s ease, border-width 0.1s ease, background-color 0.1s ease",
+    cursor: "text",
+    borderTopLeftRadius: "calc(var(--md-shape-corner-extra-small) * var(--md-shape-scale, 1))",
+    borderTopRightRadius: "calc(var(--md-shape-corner-extra-small) * var(--md-shape-scale, 1))",
+  },
+  variants: {
+    variant: {
+      filled: {
+        backgroundColor: "var(--md-surface-variant)",
+        borderBottom: "1px solid var(--md-on-surface-variant)",
+        padding: "0 16px",
+        "&:hover": {
+          backgroundColor: "rgba(73, 69, 79, 0.08)", // on-surface-variant 8% hover
+        }
+      },
+      outlined: {
+        backgroundColor: "transparent",
+        border: "1px solid var(--md-outline)",
+        padding: "0 16px",
+        borderRadius: "calc(var(--md-shape-corner-extra-small) * var(--md-shape-scale, 1))",
+        "&:hover": {
+          borderColor: "var(--md-on-surface)",
+        }
+      },
+    },
+    focused: {
+      true: {},
+      false: {},
+    },
+    error: {
+      true: {},
+      false: {},
+    }
+  },
+  compoundVariants: [
+    {
+      variant: "filled",
+      focused: true,
+      style: {
+        borderBottom: "2px solid var(--md-primary)",
+      }
+    },
+    {
+      variant: "outlined",
+      focused: true,
+      style: {
+        border: "2px solid var(--md-primary)",
+      }
+    },
+    {
+      variant: "filled",
+      error: true,
+      style: {
+        borderBottom: "2px solid var(--md-error)",
+      }
+    },
+    {
+      variant: "outlined",
+      error: true,
+      style: {
+        border: "2px solid var(--md-error)",
+      }
+    }
+  ]
+});
+
+const labelSva = sva({
+  base: {
+    position: "absolute",
+    left: "16px",
+    color: "var(--md-on-surface-variant)",
+    transition: "all 0.15s cubic-bezier(0.2, 0, 0, 1)",
+    pointerEvents: "none",
+    transformOrigin: "left top",
+    background: "transparent",
+    padding: "0",
+  },
+  variants: {
+    state: {
+      rest: {
+        top: "50%",
+        transform: "translateY(-50%) scale(1)",
+      },
+      floated: {
+        top: "0",
+        transform: "translateY(-50%) scale(0.75)",
+      }
+    },
+    variant: {
+      filled: {},
+      outlined: {
+        background: "var(--md-surface)",
+        padding: "0 4px",
+      }
+    },
+    focused: {
+      true: {
+        color: "var(--md-primary)",
+      },
+      false: {}
+    },
+    error: {
+      true: {
+        color: "var(--md-error)",
+      },
+      false: {}
+    }
+  },
+  compoundVariants: [
+    {
+      state: "rest",
+      variant: "outlined",
+      style: {
+        background: "transparent",
+        padding: "0",
+      }
+    }
+  ]
+});
+
+const inputSva = sva({
+  base: {
+    border: "none",
+    outline: "none",
+    background: "transparent",
+    width: "100%",
+    height: "100%",
+    fontFamily: "inherit",
+    fontSize: "1rem",
+    color: "var(--md-on-surface)",
+    paddingTop: "8px", // room for floated label
+  }
+});
+
+const iconSva = sva({
+  base: {
+    color: "var(--md-on-surface-variant)",
+    fontSize: "24px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  variants: {
+    position: {
+      leading: { marginRight: "12px" },
+      trailing: { marginLeft: "12px" }
+    }
+  }
+});
+
+const supportingTextSva = sva({
+  base: {
+    fontSize: "0.75rem",
+    marginTop: "4px",
+    marginLeft: "16px",
+  },
+  variants: {
+    error: {
+      true: { color: "var(--md-error)" },
+      false: { color: "var(--md-on-surface-variant)" }
+    }
+  }
+});
 
 export class TextField extends BaseElement {
   private input: HTMLInputElement;
   private labelEl: HTMLSpanElement;
-  private variant: TextFieldVariant;
+  private fieldWrap: HTMLDivElement;
   private supportingText?: HTMLSpanElement;
+  private leadingIconSpan?: HTMLSpanElement;
+  private trailingIconSpan?: HTMLSpanElement;
+  
+  private variant: TextFieldVariant;
+  private labelText: string;
+  private isFocused = false;
+  private isError = false;
 
   constructor(label: string, variant: TextFieldVariant = "filled") {
     super("div");
     this.variant = variant;
-    this.element.className = "m3-textfield";
-    this.element.style.display = "inline-flex";
-    this.element.style.flexDirection = "column";
-    this.element.style.position = "relative";
-    this.element.style.width = "280px"; // M3's default minimum text field width
+    this.labelText = label;
 
-    const fieldWrap = document.createElement("div");
-    fieldWrap.style.position = "relative";
-    fieldWrap.style.height = `${FIELD_HEIGHT}px`;
-    fieldWrap.style.display = "flex";
-    fieldWrap.style.alignItems = "center";
-    fieldWrap.style.boxSizing = "border-box";
+    this.element.className = textFieldSva();
 
-    if (variant === "filled") {
-      fieldWrap.style.backgroundColor = currentTheme.surfaceVariant;
-      fieldWrap.style.borderRadius = `${currentTheme.shapeCornerExtraSmall}px ${currentTheme.shapeCornerExtraSmall}px 0 0`;
-      fieldWrap.style.borderBottom = `1px solid ${currentTheme.onSurfaceVariant}`;
-      fieldWrap.style.padding = "0 16px";
-    } else {
-      fieldWrap.style.backgroundColor = "transparent";
-      fieldWrap.style.border = `1px solid ${currentTheme.outline}`;
-      fieldWrap.style.borderRadius = `${currentTheme.shapeCornerExtraSmall}px`;
-      fieldWrap.style.padding = "0 16px";
-    }
-    fieldWrap.style.transition =
-      "border-color 0.1s ease, border-width 0.1s ease";
-
+    this.fieldWrap = document.createElement("div");
+    
     this.labelEl = document.createElement("span");
     this.labelEl.textContent = label;
-    this.labelEl.style.position = "absolute";
-    this.labelEl.style.left = "16px";
-    this.labelEl.style.top = "50%";
-    this.labelEl.style.transform = "translateY(-50%)";
-    this.labelEl.style.color = currentTheme.onSurfaceVariant;
-    this.labelEl.style.fontFamily = currentTheme.fontFamily;
-    this.labelEl.style.fontSize = "16px";
-    this.labelEl.style.transition = "all 0.15s ease";
-    this.labelEl.style.pointerEvents = "none";
-    this.labelEl.style.background =
-      variant === "outlined" ? currentTheme.surface : "transparent";
-    this.labelEl.style.padding = variant === "outlined" ? "0 4px" : "0";
-
+    
     this.input = document.createElement("input");
     this.input.type = "text";
-    this.input.style.border = "none";
-    this.input.style.outline = "none";
-    this.input.style.background = "transparent";
-    this.input.style.width = "100%";
-    this.input.style.height = "100%";
-    this.input.style.fontFamily = currentTheme.fontFamily;
-    this.input.style.fontSize = "16px";
-    this.input.style.color = currentTheme.onSurface;
-    this.input.style.paddingTop = "8px"; // room for the floated label above the text baseline
+    this.input.className = inputSva();
 
-    fieldWrap.appendChild(this.labelEl);
-    fieldWrap.appendChild(this.input);
-    this.element.appendChild(fieldWrap);
+    this.fieldWrap.appendChild(this.labelEl);
+    this.fieldWrap.appendChild(this.input);
+    this.element.appendChild(this.fieldWrap);
 
-    const floatLabel = () => {
-      this.labelEl.style.top = "0";
-      this.labelEl.style.fontSize = "12px";
-      this.labelEl.style.color = currentTheme.primary;
-    };
-    const restLabel = () => {
-      if (this.input.value) return;
-      this.labelEl.style.top = "50%";
-      this.labelEl.style.fontSize = "16px";
-      this.labelEl.style.color = currentTheme.onSurfaceVariant;
-    };
+    this.updateStyles();
 
     this.input.addEventListener("focus", () => {
-      floatLabel();
-      if (this.variant === "filled") {
-        fieldWrap.style.borderBottom = `2px solid ${currentTheme.primary}`;
-      } else {
-        fieldWrap.style.border = `2px solid ${currentTheme.primary}`;
-      }
+      this.isFocused = true;
+      this.updateStyles();
     });
+
     this.input.addEventListener("blur", () => {
-      restLabel();
-      if (this.variant === "filled") {
-        fieldWrap.style.borderBottom = `1px solid ${currentTheme.onSurfaceVariant}`;
-      } else {
-        fieldWrap.style.border = `1px solid ${currentTheme.outline}`;
-      }
+      this.isFocused = false;
+      this.updateStyles();
     });
+
     this.input.addEventListener("input", () => {
-      if (this.input.value) floatLabel();
+      this.updateStyles();
     });
+    
+    this.fieldWrap.addEventListener("click", () => {
+      this.input.focus();
+    });
+  }
+
+  private updateStyles() {
+    const hasValue = !!this.input.value;
+    const floated = this.isFocused || hasValue;
+
+    this.fieldWrap.className = fieldWrapSva({
+      variant: this.variant,
+      focused: this.isFocused,
+      error: this.isError
+    });
+
+    this.labelEl.className = labelSva({
+      variant: this.variant,
+      state: floated ? "floated" : "rest",
+      focused: this.isFocused && !this.isError,
+      error: this.isError
+    });
+
+    // If outlined, the label background covers the border.
+    // If it's not floated, it should not have a background.
+    // SVA handles this via compoundVariants.
   }
 
   SetValue(value: string): this {
     this.input.value = value;
-    if (value) {
-      this.labelEl.style.top = "0";
-      this.labelEl.style.fontSize = "12px";
-    }
+    this.updateStyles();
     return this;
   }
 
@@ -122,26 +275,50 @@ export class TextField extends BaseElement {
     return this;
   }
 
-  /** Sets helper/error text shown below the field. */
+  SetLeadingIcon(icon: string): this {
+    if (!this.leadingIconSpan) {
+      this.leadingIconSpan = document.createElement("span");
+      this.leadingIconSpan.className = "material-icons " + iconSva({ position: "leading" });
+      this.fieldWrap.insertBefore(this.leadingIconSpan, this.labelEl);
+      this.labelEl.style.left = "48px"; // Adjust label position
+    }
+    this.leadingIconSpan.textContent = icon;
+    return this;
+  }
+
+  SetTrailingIcon(icon: string, onClick?: () => void): this {
+    if (!this.trailingIconSpan) {
+      this.trailingIconSpan = document.createElement("span");
+      this.trailingIconSpan.className = "material-icons " + iconSva({ position: "trailing" });
+      this.fieldWrap.appendChild(this.trailingIconSpan);
+    }
+    this.trailingIconSpan.textContent = icon;
+    if (onClick) {
+      this.trailingIconSpan.style.cursor = "pointer";
+      this.trailingIconSpan.onclick = (e) => {
+        e.stopPropagation();
+        onClick();
+      };
+    }
+    return this;
+  }
+
   SetSupportingText(text: string, isError = false): this {
     if (!this.supportingText) {
       this.supportingText = document.createElement("span");
-      this.supportingText.style.fontSize = "12px";
-      this.supportingText.style.fontFamily = currentTheme.fontFamily;
-      this.supportingText.style.marginTop = "4px";
-      this.supportingText.style.marginLeft = "16px";
       this.element.appendChild(this.supportingText);
     }
+    this.isError = isError;
+    this.supportingText.className = supportingTextSva({ error: isError });
     this.supportingText.textContent = text;
-    this.supportingText.style.color = isError
-      ? currentTheme.error
-      : currentTheme.onSurfaceVariant;
+    this.updateStyles();
     return this;
   }
 
   override SetEnabled(enabled: boolean): this {
     this.input.disabled = !enabled;
     this.element.style.opacity = enabled ? "1" : "0.38";
+    this.element.style.pointerEvents = enabled ? "auto" : "none";
     return this;
   }
 
@@ -155,13 +332,21 @@ export class TextField extends BaseElement {
   }
 }
 
-export function CreateTextField(
+function CreateTextField(
   label: string,
   variant: TextFieldVariant = "filled",
 ): TextField {
   return new TextField(label, variant);
 }
 
+/**
+ * AddTextField function.
+ * @param {LayoutElement} parent - The parent parameter
+ * @param {string} label - The label parameter
+ * @param {TextFieldVariant} variant - The variant parameter
+ * @returns {TextField}
+ *
+ */
 export function AddTextField(
   parent: LayoutElement,
   label: string,

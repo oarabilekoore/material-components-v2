@@ -1,4 +1,4 @@
-import { BaseElement } from "./base_element.ts";
+import { BaseElement } from "./BaseElement.ts";
 
 /** Displays an image. */
 export class ImageElement extends BaseElement {

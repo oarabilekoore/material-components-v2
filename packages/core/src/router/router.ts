@@ -1,5 +1,5 @@
-import { BaseElement } from "../base_element.ts";
-import { LayoutElement } from "../layout_element.ts";
+import { BaseElement } from "../elements/BaseElement.ts";
+import { LayoutElement } from "../elements/Layout.ts";
 
 export interface RouteParams {
   [key: string]: string;
@@ -24,7 +24,24 @@ export class BrowserRouter {
     this.routes = routes;
     this.outlet = outlet;
     this.notFound = options?.notFound;
-    globalThis.addEventListener("popstate", () => this.render());
+
+    if (typeof globalThis !== "undefined" && globalThis.addEventListener) {
+      globalThis.addEventListener("popstate", () => this.render());
+      
+      // Intercept all local anchor link clicks
+      globalThis.document.addEventListener("click", (e) => {
+        const target = e.target as HTMLElement;
+        const anchor = target.closest("a");
+        if (anchor && anchor.href) {
+          const url = new URL(anchor.href);
+          if (url.origin === globalThis.location.origin) {
+            e.preventDefault();
+            this.Navigate(url.pathname + url.search + url.hash);
+          }
+        }
+      });
+    }
+
     this.render();
   }
 
@@ -48,6 +65,7 @@ export class BrowserRouter {
   }
 
   private render() {
+    if (typeof globalThis === "undefined" || !globalThis.location) return;
     const pathname = globalThis.location.pathname;
     const matched = this.matchRoute(pathname);
     this.outlet.element.innerHTML = "";
@@ -61,18 +79,25 @@ export class BrowserRouter {
 
   /** Navigates to a new path without a full page reload. */
   Navigate(path: string) {
-    globalThis.history.pushState({}, "", path);
-    this.render();
+    if (typeof globalThis === "undefined" || !globalThis.history) return;
+    if (globalThis.location.pathname !== path) {
+      globalThis.history.pushState({}, "", path);
+      this.render();
+    }
   }
 
   /** Goes back in browser history. */
   Back() {
-    globalThis.history.back();
+    if (typeof globalThis !== "undefined" && globalThis.history) {
+      globalThis.history.back();
+    }
   }
 
   /** Goes forward in browser history. */
   Forward() {
-    globalThis.history.forward();
+    if (typeof globalThis !== "undefined" && globalThis.history) {
+      globalThis.history.forward();
+    }
   }
 }
 

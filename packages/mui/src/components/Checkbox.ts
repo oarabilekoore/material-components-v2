@@ -1,70 +1,128 @@
-import { BaseElement } from "../../../core/src/elements/base_element.ts";
-import { LayoutElement } from "../../../core/src/elements/layout_element.ts";
-import { currentTheme } from "../theme.ts";
+import { BaseElement } from "../../../core/src/elements/BaseElement.ts";
+import { LayoutElement } from "../../../core/src/elements/Layout.ts";
+import { sva } from "../../../core/src/utils/sva.ts";
 
-const BOX_SIZE = 18;
-const CORNER_RADIUS = 2; // M3 checkbox spec: 2dp, distinct from the theme's shapeCornerExtraSmall (4dp)
+const containerSva = sva({
+  base: {
+    display: "inline-flex",
+    alignItems: "center",
+    cursor: "pointer",
+    gap: "8px",
+    padding: "8px",
+    userSelect: "none",
+  },
+});
+
+const inputSva = sva({
+  base: {
+    position: "absolute",
+    opacity: "0",
+    width: "0",
+    height: "0",
+  },
+});
+
+const boxSva = sva({
+  base: {
+    width: "18px",
+    height: "18px",
+    borderRadius: "2px",
+    border: "2px solid var(--md-outline)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    transition: "background-color 0.1s ease, border-color 0.1s ease",
+    boxSizing: "border-box",
+  },
+  variants: {
+    checked: {
+      true: {
+        backgroundColor: "var(--md-primary)",
+        borderColor: "var(--md-primary)",
+      },
+      false: {
+        backgroundColor: "transparent",
+        borderColor: "var(--md-outline)",
+      },
+    },
+    focused: {
+      true: {
+        outline: "2px solid var(--md-primary)",
+        outlineOffset: "2px",
+      },
+      false: {
+        outline: "none",
+      },
+    },
+  },
+  defaultVariants: {
+    checked: false,
+    focused: false,
+  },
+});
+
+const checkmarkSva = sva({
+  base: {
+    color: "var(--md-on-primary)",
+    fontSize: "13px",
+    lineHeight: "1",
+    transition: "opacity 0.1s ease",
+  },
+  variants: {
+    visible: {
+      true: { opacity: "1" },
+      false: { opacity: "0" },
+    },
+  },
+  defaultVariants: {
+    visible: false,
+  },
+});
+
+const labelSva = sva({
+  base: {
+    color: "var(--md-on-surface)",
+    fontFamily: "var(--md-font-family, Roboto, sans-serif)",
+    fontSize: "14px",
+  },
+});
 
 export class Checkbox extends BaseElement {
   private input: HTMLInputElement;
   private box: HTMLDivElement;
   private checkmark: HTMLSpanElement;
   private labelSpan: HTMLSpanElement;
+  private _focused = false;
 
   constructor(label = "") {
     super("label");
-    this.element.className = "m3-checkbox";
-    this.element.style.display = "inline-flex";
-    this.element.style.alignItems = "center";
-    this.element.style.cursor = "pointer";
-    this.element.style.gap = "8px";
-    this.element.style.padding = "8px"; // approximates the 40px touch target around an 18px box
+    this.element.className = "m3-checkbox " + containerSva();
 
     this.input = document.createElement("input");
     this.input.type = "checkbox";
-    this.input.style.position = "absolute";
-    this.input.style.opacity = "0";
-    this.input.style.width = "0";
-    this.input.style.height = "0";
+    this.input.className = inputSva();
 
     this.box = document.createElement("div");
-    this.box.style.width = `${BOX_SIZE}px`;
-    this.box.style.height = `${BOX_SIZE}px`;
-    this.box.style.borderRadius = `${CORNER_RADIUS}px`;
-    this.box.style.border = `2px solid ${currentTheme.outline}`;
-    this.box.style.display = "flex";
-    this.box.style.alignItems = "center";
-    this.box.style.justifyContent = "center";
-    this.box.style.transition =
-      "background-color 0.1s ease, border-color 0.1s ease";
-    this.box.style.boxSizing = "border-box";
 
     this.checkmark = document.createElement("span");
     this.checkmark.textContent = "✓";
-    this.checkmark.style.color = currentTheme.onPrimary;
-    this.checkmark.style.fontSize = "13px";
-    this.checkmark.style.lineHeight = "1";
-    this.checkmark.style.opacity = "0";
-    this.checkmark.style.transition = "opacity 0.1s ease";
-
     this.box.appendChild(this.checkmark);
 
     this.labelSpan = document.createElement("span");
+    this.labelSpan.className = labelSva();
     this.labelSpan.textContent = label;
-    this.labelSpan.style.color = currentTheme.onSurface;
-    this.labelSpan.style.fontFamily = currentTheme.fontFamily;
-    this.labelSpan.style.fontSize = "14px";
 
     this.element.appendChild(this.input);
     this.element.appendChild(this.box);
     if (label) this.element.appendChild(this.labelSpan);
 
     this.input.addEventListener("focus", () => {
-      this.box.style.outline = `2px solid ${currentTheme.primary}`;
-      this.box.style.outlineOffset = "2px";
+      this._focused = true;
+      this.updateState();
     });
     this.input.addEventListener("blur", () => {
-      this.box.style.outline = "none";
+      this._focused = false;
+      this.updateState();
     });
 
     this.input.addEventListener("change", () => this.updateState());
@@ -72,21 +130,13 @@ export class Checkbox extends BaseElement {
   }
 
   private updateState() {
-    if (this.input.indeterminate) {
-      this.box.style.backgroundColor = currentTheme.primary;
-      this.box.style.borderColor = currentTheme.primary;
-      this.checkmark.textContent = "—";
-      this.checkmark.style.opacity = "1";
-    } else if (this.input.checked) {
-      this.box.style.backgroundColor = currentTheme.primary;
-      this.box.style.borderColor = currentTheme.primary;
-      this.checkmark.textContent = "✓";
-      this.checkmark.style.opacity = "1";
-    } else {
-      this.box.style.backgroundColor = "transparent";
-      this.box.style.borderColor = currentTheme.outline;
-      this.checkmark.style.opacity = "0";
-    }
+    const isIndeterminate = this.input.indeterminate;
+    const isChecked = this.input.checked;
+    const activeChecked = isIndeterminate || isChecked;
+
+    this.box.className = boxSva({ checked: activeChecked, focused: this._focused });
+    this.checkmark.className = checkmarkSva({ visible: activeChecked });
+    this.checkmark.textContent = isIndeterminate ? "—" : "✓";
   }
 
   SetChecked(checked: boolean): this {
@@ -124,10 +174,17 @@ export class Checkbox extends BaseElement {
   }
 }
 
-export function CreateCheckbox(label = ""): Checkbox {
+function CreateCheckbox(label = ""): Checkbox {
   return new Checkbox(label);
 }
 
+/**
+ * AddCheckbox function.
+ * @param {LayoutElement} parent - The parent parameter
+ * @param {any} label - The label parameter
+ * @returns {Checkbox}
+ *
+ */
 export function AddCheckbox(parent: LayoutElement, label = ""): Checkbox {
   const box = CreateCheckbox(label);
   parent.AddChild(box);

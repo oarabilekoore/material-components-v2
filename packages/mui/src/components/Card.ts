@@ -1,53 +1,92 @@
-import { BaseElement } from "../../../core/src/elements/base_element.ts";
-import { LayoutElement } from "../../../core/src/elements/layout_element.ts";
-import { CardVariant, currentTheme } from "../theme.ts";
+import { BaseElement } from "../../../core/src/elements/BaseElement.ts";
+import { LayoutElement } from "../../../core/src/elements/Layout.ts";
+import { CardVariant } from "../theme.ts";
+import { sva } from "../../../core/src/utils/sva.ts";
+
+const cardSva = sva({
+  base: {
+    fontFamily: "var(--md-font-family, Roboto, sans-serif)",
+    borderRadius: "12px",
+    padding: "16px",
+    boxSizing: "border-box",
+    transition: "background-color 0.2s ease, box-shadow 0.2s ease, border 0.2s ease",
+  },
+  variants: {
+    variant: {
+      elevated: {
+        backgroundColor: "var(--md-surface)",
+        boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+        border: "none",
+      },
+      filled: {
+        backgroundColor: "var(--md-surface-container, var(--md-surface-variant))",
+        boxShadow: "none",
+        border: "none",
+      },
+      outlined: {
+        backgroundColor: "var(--md-surface)",
+        border: "1px solid var(--md-outline-variant)",
+        boxShadow: "none",
+      },
+    },
+  },
+  defaultVariants: {
+    variant: "elevated",
+  },
+});
+
+const headerSva = sva({
+  base: {
+    fontSize: "1.25rem",
+    fontWeight: "500",
+    marginBottom: "8px",
+    color: "var(--md-on-surface)",
+  },
+});
+
+const contentSva = sva({
+  base: {
+    fontSize: "0.875rem",
+    color: "var(--md-on-surface-variant)",
+  },
+});
 
 export class Card extends BaseElement {
   private headerEl: HTMLElement;
   private contentEl: HTMLElement;
   private _variant: CardVariant;
+  private _svaClass = "";
 
   constructor(variant: CardVariant = "elevated") {
     super("div");
     this._variant = variant;
-    this.element.className = `m3-card m3-card-${variant}`;
-    this.element.style.fontFamily = currentTheme.fontFamily;
-    this.element.style.borderRadius = `${currentTheme.shapeCornerMedium}px`;
-    this.element.style.padding = "16px";
-    this.element.style.boxSizing = "border-box";
-    this.element.style.transition =
-      "background-color 0.2s ease, box-shadow 0.2s ease";
-
     this.applyVariant(variant);
 
     this.headerEl = document.createElement("div");
-    this.headerEl.style.fontSize = "1.25rem";
-    this.headerEl.style.fontWeight = "500";
-    this.headerEl.style.marginBottom = "8px";
-    this.headerEl.style.color = currentTheme.onSurface;
+    this.headerEl.className = headerSva();
     this.element.appendChild(this.headerEl);
 
     this.contentEl = document.createElement("div");
-    this.contentEl.style.fontSize = "0.875rem";
-    this.contentEl.style.color = currentTheme.onSurfaceVariant;
+    this.contentEl.className = contentSva();
     this.element.appendChild(this.contentEl);
   }
 
   private applyVariant(variant: CardVariant): void {
-    switch (variant) {
-      case "elevated":
-        this.element.style.backgroundColor = currentTheme.surface;
-        this.element.style.boxShadow = `0 ${currentTheme.elevationLevel1}px ${currentTheme.elevationLevel2}px rgba(0,0,0,0.1)`;
-        break;
-      case "filled":
-        this.element.style.backgroundColor =
-          currentTheme.surfaceContainer || currentTheme.surfaceVariant;
-        break;
-      case "outlined":
-        this.element.style.backgroundColor = currentTheme.surface;
-        this.element.style.border = `1px solid ${currentTheme.outlineVariant}`;
-        break;
+    if (this._svaClass) {
+      this.element.classList.remove(this._svaClass);
     }
+    this._svaClass = cardSva({ variant });
+    this.element.classList.add(this._svaClass);
+  }
+
+  SetVariant(variant: CardVariant): this {
+    this._variant = variant;
+    this.applyVariant(variant);
+    return this;
+  }
+
+  GetVariant(): CardVariant {
+    return this._variant;
   }
 
   SetHeader(text: string): this {
@@ -71,10 +110,17 @@ export class Card extends BaseElement {
   }
 }
 
-export function CreateCard(variant: CardVariant = "elevated"): Card {
+function CreateCard(variant: CardVariant = "elevated"): Card {
   return new Card(variant);
 }
 
+/**
+ * AddCard function.
+ * @param {LayoutElement} parent - The parent parameter
+ * @param {CardVariant} variant - The variant parameter
+ * @returns {Card}
+ *
+ */
 export function AddCard(
   parent: LayoutElement,
   variant: CardVariant = "elevated",

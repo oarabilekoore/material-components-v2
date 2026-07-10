@@ -1,5 +1,5 @@
-import { BaseElement } from "../../../core/src/elements/base_element.ts";
-import { LayoutElement } from "../../../core/src/elements/layout_element.ts";
+import { BaseElement } from "../../../core/src/elements/BaseElement.ts";
+import { LayoutElement } from "../../../core/src/elements/Layout.ts";
 import { currentTheme } from "../theme.ts";
 
 export type TabsVariant = "primary" | "secondary";
@@ -86,10 +86,17 @@ export class Tabs extends BaseElement {
   }
 }
 
-export function CreateTabs(variant: TabsVariant = "primary"): Tabs {
+function CreateTabs(variant: TabsVariant = "primary"): Tabs {
   return new Tabs(variant);
 }
 
+/**
+ * AddTabs function.
+ * @param {LayoutElement} parent - The parent parameter
+ * @param {TabsVariant} variant - The variant parameter
+ * @returns {Tabs}
+ *
+ */
 export function AddTabs(
   parent: LayoutElement,
   variant: TabsVariant = "primary",

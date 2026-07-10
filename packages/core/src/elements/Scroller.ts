@@ -1,4 +1,4 @@
-import { LayoutElement } from "./layout_element.ts";
+import { LayoutElement } from "./Layout.ts";
 
 /** A scrollable container for a Layout. */
 export class ScrollerElement extends LayoutElement {

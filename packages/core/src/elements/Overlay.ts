@@ -1,4 +1,4 @@
-import { BaseElement } from "./base_element.ts";
+import { BaseElement } from "./BaseElement.ts";
 
 export interface OverlayOptions {
   /** Renders a full-screen scrim behind the overlay (Dialog: yes, Menu/Tooltip: no). */

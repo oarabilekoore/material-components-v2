@@ -1,5 +1,5 @@
-import { BaseElement } from "./base_element.ts";
-import { LayoutElement } from "./layout_element.ts";
+import { BaseElement } from "./BaseElement.ts";
+import { LayoutElement } from "./Layout.ts";
 
 /** Wraps a custom web component / custom element. */
 export class WebComponentElement extends BaseElement {
@@ -63,7 +63,7 @@ export class WebComponentElement extends BaseElement {
 }
 
 /** Creates a web component wrapper for a given custom element tag name. */
-export function CreateWebComponent(
+function CreateWebComponent(
   tagName: string,
   width = -1,
   height = -1,

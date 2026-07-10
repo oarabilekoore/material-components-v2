@@ -1,5 +1,5 @@
-import { BaseElement } from "../../../core/src/elements/base_element.ts";
-import { LayoutElement } from "../../../core/src/elements/layout_element.ts";
+import { BaseElement } from "../../../core/src/elements/BaseElement.ts";
+import { LayoutElement } from "../../../core/src/elements/Layout.ts";
 import { currentTheme } from "../theme.ts";
 
 export class LinearProgress extends BaseElement {
@@ -46,6 +46,16 @@ export class LinearProgress extends BaseElement {
     return this;
   }
 
+  SetThickness(px: number): this {
+    this.element.style.height = `${px}px`;
+    return this;
+  }
+
+  SetRounded(rounded: boolean): this {
+    this.element.style.borderRadius = rounded ? `${this.element.offsetHeight / 2}px` : "0";
+    return this;
+  }
+
   private ensureAnimations(): void {
     if (!document.getElementById("m3-progress-anim")) {
       const style = document.createElement("style");
@@ -65,10 +75,16 @@ export class LinearProgress extends BaseElement {
   }
 }
 
-export function CreateLinearProgress(): LinearProgress {
+function CreateLinearProgress(): LinearProgress {
   return new LinearProgress();
 }
 
+/**
+ * AddLinearProgress function.
+ * @param {LayoutElement} parent - The parent parameter
+ * @returns {LinearProgress}
+ *
+ */
 export function AddLinearProgress(parent: LayoutElement): LinearProgress {
   const progress = CreateLinearProgress();
   parent.AddChild(progress);

@@ -1,18 +1,22 @@
-import { BaseElement } from "../../../core/src/elements/base_element.ts";
-import { LayoutElement } from "../../../core/src/elements/layout_element.ts";
+import { BaseElement } from "../../../core/src/elements/BaseElement.ts";
+import { LayoutElement } from "../../../core/src/elements/Layout.ts";
 import { currentTheme } from "../theme.ts";
+
+import { attachRipple } from "../../../core/src/utils/ripple.ts";
 
 export class SegmentedButton extends BaseElement {
   private _buttons: HTMLButtonElement[] = [];
   private _selectedIndex: number = -1;
-  private _onSelect: ((index: number, value: string) => void) | null = null;
+  private _onSelect: ((value: string) => void) | null = null;
   private _multiSelect: boolean = false;
   private _selectedIndices: Set<number> = new Set();
+  private _defaultIcons: (string | undefined)[] = [];
+  private _icons: HTMLSpanElement[] = [];
 
   constructor(multiSelect: boolean = false) {
     super("div");
     this._multiSelect = multiSelect;
-    this.element.className = "m3-segmented-button material-icons";
+    this.element.className = "m3-segmented-button";
     this.element.style.display = "inline-flex";
     this.element.style.border = `1px solid ${currentTheme.outline}`;
     this.element.style.borderRadius = `${currentTheme.shapeCornerFull}px`;
@@ -20,11 +24,12 @@ export class SegmentedButton extends BaseElement {
     this.element.style.fontFamily = currentTheme.fontFamily;
   }
 
-  AddSegment(label: string, value: string, icon?: string): this {
+  AddSegment(label: string, icon?: string): this {
     const btn = document.createElement("button");
     const index = this._buttons.length;
+    btn.dataset.label = label;
+    this._defaultIcons.push(icon);
 
-    btn.dataset.value = value;
     btn.style.flex = "1";
     btn.style.display = "flex";
     btn.style.alignItems = "center";
@@ -46,12 +51,16 @@ export class SegmentedButton extends BaseElement {
         `1px solid ${currentTheme.outline}`;
     }
 
+    const iconSpan = document.createElement("span");
+    iconSpan.className = "material-icons";
+    iconSpan.style.fontSize = "18px";
     if (icon) {
-      const iconSpan = document.createElement("span");
       iconSpan.textContent = icon;
-      iconSpan.className = "material-icons";
-      btn.appendChild(iconSpan);
+    } else {
+      iconSpan.style.display = "none";
     }
+    this._icons.push(iconSpan);
+    btn.appendChild(iconSpan);
 
     const labelSpan = document.createElement("span");
     labelSpan.textContent = label;
@@ -61,6 +70,8 @@ export class SegmentedButton extends BaseElement {
 
     this._buttons.push(btn);
     this.element.appendChild(btn);
+    
+    attachRipple(btn);
     return this;
   }
 
@@ -76,7 +87,7 @@ export class SegmentedButton extends BaseElement {
         this.updateButtonState(index, true);
       }
       if (this._onSelect) {
-        this._onSelect(index, this._buttons[index].dataset.value || "");
+        this._onSelect(this._buttons[index].dataset.label || "");
       }
     } else {
       if (this._selectedIndex === index) return this;
@@ -88,7 +99,7 @@ export class SegmentedButton extends BaseElement {
       this.updateButtonState(index, true);
 
       if (this._onSelect) {
-        this._onSelect(index, this._buttons[index].dataset.value || "");
+        this._onSelect(this._buttons[index].dataset.label || "");
       }
     }
     return this;
@@ -96,16 +107,27 @@ export class SegmentedButton extends BaseElement {
 
   private updateButtonState(index: number, active: boolean): void {
     const btn = this._buttons[index];
+    const iconSpan = this._icons[index];
+    const defaultIcon = this._defaultIcons[index];
+
     if (active) {
       btn.style.backgroundColor = currentTheme.secondaryContainer;
       btn.style.color = currentTheme.onSecondaryContainer;
+      iconSpan.textContent = "check";
+      iconSpan.style.display = "inline-flex";
     } else {
       btn.style.backgroundColor = "transparent";
       btn.style.color = currentTheme.onSurface;
+      if (defaultIcon) {
+        iconSpan.textContent = defaultIcon;
+        iconSpan.style.display = "inline-flex";
+      } else {
+        iconSpan.style.display = "none";
+      }
     }
   }
 
-  SetOnSelect(callback: (index: number, value: string) => void): this {
+  SetOnSelect(callback: (label: string) => void): this {
     this._onSelect = callback;
     return this;
   }
@@ -115,12 +137,17 @@ export class SegmentedButton extends BaseElement {
   }
 }
 
-export function CreateSegmentedButton(
-  multiSelect: boolean = false,
-): SegmentedButton {
+function CreateSegmentedButton(multiSelect: boolean = false): SegmentedButton {
   return new SegmentedButton(multiSelect);
 }
 
+/**
+ * AddSegmentedButton function.
+ * @param {LayoutElement} parent - The parent parameter
+ * @param {boolean} multiSelect - The multiSelect parameter
+ * @returns {SegmentedButton}
+ *
+ */
 export function AddSegmentedButton(
   parent: LayoutElement,
   multiSelect: boolean = false,

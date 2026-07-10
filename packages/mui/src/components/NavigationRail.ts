@@ -1,58 +1,120 @@
-import { BaseElement } from "../../../core/src/elements/base_element.ts";
-import { LayoutElement } from "../../../core/src/elements/layout_element.ts";
-import { currentTheme } from "../theme.ts";
+import { BaseElement } from "../../../core/src/elements/BaseElement.ts";
+import { LayoutElement } from "../../../core/src/elements/Layout.ts";
+import { sva } from "../../../core/src/utils/sva.ts";
+import { attachRipple } from "../../../core/src/utils/ripple.ts";
+
+const railSva = sva({
+  base: {
+    display: "flex",
+    flexDirection: "column",
+    height: "100%",
+    backgroundColor: "var(--md-surface)",
+    fontFamily: "var(--md-font-family, Roboto, sans-serif)",
+    paddingTop: "24px",
+    width: "80px",
+    alignItems: "center",
+    overflowX: "hidden",
+    boxSizing: "border-box",
+    borderRight: "1px solid var(--md-outline-variant)",
+    flexShrink: "0",
+  },
+});
+
+const itemSva = sva({
+  base: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    width: "80px",
+    height: "72px",
+    cursor: "pointer",
+    transition: "all 0.2s cubic-bezier(0.2, 0, 0, 1)",
+    boxSizing: "border-box",
+    position: "relative",
+    gap: "4px",
+  },
+});
+
+const iconContainerSva = sva({
+  base: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    width: "56px",
+    height: "32px",
+    borderRadius: "16px",
+    transition: "all 0.2s cubic-bezier(0.2, 0, 0, 1)",
+  },
+  variants: {
+    active: {
+      true: {
+        backgroundColor: "var(--md-secondary-container)",
+        color: "var(--md-on-secondary-container)",
+      },
+      false: {
+        backgroundColor: "transparent",
+        color: "var(--md-on-surface-variant)",
+      }
+    }
+  },
+  defaultVariants: {
+    active: false,
+  }
+});
+
+const labelSva = sva({
+  base: {
+    fontWeight: "500",
+    fontSize: "12px",
+    transition: "all 0.2s cubic-bezier(0.2, 0, 0, 1)",
+    whiteSpace: "nowrap",
+  },
+  variants: {
+    active: {
+      true: {
+        color: "var(--md-on-surface)",
+        fontWeight: "600",
+      },
+      false: {
+        color: "var(--md-on-surface-variant)",
+      }
+    }
+  },
+  defaultVariants: {
+    active: false,
+  }
+});
 
 class NavigationRailItem extends BaseElement {
   private _iconContainer: HTMLDivElement;
   private _labelEl: HTMLSpanElement;
   private _value: string;
+  private _active: boolean = false;
 
   constructor(icon: string, label: string, value: string) {
     super("div");
     this._value = value;
-
-    this.element.style.display = "flex";
-    this.element.style.flexDirection = "column";
-    this.element.style.alignItems = "center";
-    this.element.style.justifyContent = "center";
-    this.element.style.flex = "1";
-    this.element.style.height = "100%";
-    this.element.style.cursor = "pointer";
-    this.element.style.minWidth = "48px";
-    this.element.style.maxWidth = "80px";
+    this.element.className = itemSva();
 
     this._iconContainer = document.createElement("div");
     this._iconContainer.textContent = icon;
-    this._iconContainer.style.width = "64px";
-    this._iconContainer.style.height = "32px";
-    this._iconContainer.style.display = "flex";
-    this._iconContainer.style.alignItems = "center";
-    this._iconContainer.style.justifyContent = "center";
-    this._iconContainer.style.borderRadius = "16px";
-    this._iconContainer.style.marginBottom = "4px";
-    this._iconContainer.style.transition = "background-color 0.2s ease";
+    this._iconContainer.className = "material-icons " + iconContainerSva({ active: false });
 
     this._labelEl = document.createElement("span");
     this._labelEl.textContent = label;
-    this._labelEl.style.fontSize = "12px";
-    this._labelEl.style.fontWeight = "500";
-    this._labelEl.style.color = currentTheme.onSurfaceVariant;
+    this._labelEl.className = labelSva({ active: false });
 
     this.element.appendChild(this._iconContainer);
     this.element.appendChild(this._labelEl);
+
+    attachRipple(this.element);
   }
 
   SetActive(active: boolean): void {
-    if (active) {
-      this._iconContainer.style.backgroundColor =
-        currentTheme.secondaryContainer;
-      this._iconContainer.style.color = currentTheme.onSecondaryContainer;
-      this._labelEl.style.color = currentTheme.onSurface;
-    } else {
-      this._iconContainer.style.backgroundColor = "transparent";
-      this._iconContainer.style.color = currentTheme.onSurfaceVariant;
-      this._labelEl.style.color = currentTheme.onSurfaceVariant;
-    }
+    this._active = active;
+    this._iconContainer.className = "material-icons " + iconContainerSva({ active: this._active });
+    this._labelEl.className = labelSva({ active: this._active });
   }
 
   GetValue(): string {
@@ -65,24 +127,36 @@ export class NavigationRail extends BaseElement {
   private _selectedIndex: number = 0;
   private _onSelect: ((index: number, value: string) => void) | null = null;
   private _fabContainer: HTMLDivElement;
+  private _bottomContainer: HTMLDivElement;
+  private _itemsContainer: HTMLDivElement;
 
   constructor() {
     super("nav");
-    this.element.className = "m3-navigation-rail";
-    this.element.style.display = "flex";
-    this.element.style.flexDirection = "column";
-    this.element.style.alignItems = "center";
-    this.element.style.width = "80px";
-    this.element.style.height = "100%";
-    this.element.style.backgroundColor = currentTheme.surface;
-    this.element.style.fontFamily = currentTheme.fontFamily;
-    this.element.style.paddingTop = "44px";
+    this.element.className = railSva();
 
     this._fabContainer = document.createElement("div");
     this._fabContainer.style.marginBottom = "32px";
     this._fabContainer.style.display = "flex";
     this._fabContainer.style.justifyContent = "center";
+    this._fabContainer.style.width = "100%";
     this.element.appendChild(this._fabContainer);
+
+    this._itemsContainer = document.createElement("div");
+    this._itemsContainer.style.display = "flex";
+    this._itemsContainer.style.flexDirection = "column";
+    this._itemsContainer.style.alignItems = "center";
+    this._itemsContainer.style.width = "100%";
+    this._itemsContainer.style.flex = "1";
+    this.element.appendChild(this._itemsContainer);
+
+    this._bottomContainer = document.createElement("div");
+    this._bottomContainer.style.display = "flex";
+    this._bottomContainer.style.flexDirection = "column";
+    this._bottomContainer.style.alignItems = "center";
+    this._bottomContainer.style.width = "100%";
+    this._bottomContainer.style.marginBottom = "24px";
+    this._bottomContainer.style.gap = "16px";
+    this.element.appendChild(this._bottomContainer);
   }
 
   SetFab(fab: BaseElement): this {
@@ -93,14 +167,12 @@ export class NavigationRail extends BaseElement {
 
   AddItem(icon: string, label: string, value: string): this {
     const item = new NavigationRailItem(icon, label, value);
-    item.element.style.height = "72px";
-    item.element.style.flex = "none";
-
     const index = this._items.length;
+    
     item.element.addEventListener("click", () => this.Select(index));
 
     this._items.push(item);
-    this.element.appendChild(item.element);
+    this._itemsContainer.appendChild(item.element);
 
     if (index === this._selectedIndex) {
       item.SetActive(true);
@@ -109,10 +181,17 @@ export class NavigationRail extends BaseElement {
     return this;
   }
 
+  AddBottomElement(el: BaseElement): this {
+    this._bottomContainer.appendChild(el.element);
+    return this;
+  }
+
   Select(index: number): this {
     if (index < 0 || index >= this._items.length) return this;
 
-    this._items[this._selectedIndex].SetActive(false);
+    if (this._items[this._selectedIndex]) {
+      this._items[this._selectedIndex].SetActive(false);
+    }
     this._selectedIndex = index;
     this._items[this._selectedIndex].SetActive(true);
 
@@ -132,10 +211,16 @@ export class NavigationRail extends BaseElement {
   }
 }
 
-export function CreateNavigationRail(): NavigationRail {
+function CreateNavigationRail(): NavigationRail {
   return new NavigationRail();
 }
 
+/**
+ * AddNavigationRail function.
+ * @param {LayoutElement} parent - The parent parameter
+ * @returns {NavigationRail}
+ *
+ */
 export function AddNavigationRail(parent: LayoutElement): NavigationRail {
   const rail = CreateNavigationRail();
   parent.AddChild(rail);

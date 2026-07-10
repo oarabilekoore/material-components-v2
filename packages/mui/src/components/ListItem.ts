@@ -1,6 +1,7 @@
-import { BaseElement } from "../../../core/src/elements/base_element.ts";
+import { BaseElement } from "../../../core/src/elements/BaseElement.ts";
 import { currentTheme } from "../theme.ts";
 import { List } from "./List.ts";
+import { attachRipple } from "../../../core/src/utils/ripple.ts";
 
 export class ListItem extends BaseElement {
   private _headline: HTMLSpanElement;
@@ -25,6 +26,7 @@ export class ListItem extends BaseElement {
     this.element.addEventListener("mouseleave", () => {
       this.element.style.backgroundColor = "transparent";
     });
+    attachRipple(this.element);
 
     const textContainer = document.createElement("div");
     textContainer.style.display = "flex";
@@ -57,6 +59,7 @@ export class ListItem extends BaseElement {
   SetLeadingIcon(icon: string): this {
     if (!this._leadingContent) {
       this._leadingContent = document.createElement("span");
+      this._leadingContent.className = "material-icons";
       this._leadingContent.style.marginRight = "16px";
       this._leadingContent.style.display = "flex";
       this._leadingContent.style.alignItems = "center";
@@ -91,10 +94,17 @@ export class ListItem extends BaseElement {
   }
 }
 
-export function CreateListItem(headline: string): ListItem {
+function CreateListItem(headline: string): ListItem {
   return new ListItem(headline);
 }
 
+/**
+ * AddListItem function.
+ * @param {List} parent - The parent parameter
+ * @param {string} headline - The headline parameter
+ * @returns {ListItem}
+ *
+ */
 export function AddListItem(parent: List, headline: string): ListItem {
   const item = CreateListItem(headline);
   parent.element.appendChild(item.element);

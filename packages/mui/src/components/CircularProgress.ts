@@ -1,6 +1,36 @@
-import { BaseElement } from "../../../core/src/elements/base_element.ts";
-import { LayoutElement } from "../../../core/src/elements/layout_element.ts";
-import { currentTheme } from "../theme.ts";
+import { BaseElement } from "../../../core/src/elements/BaseElement.ts";
+import { LayoutElement } from "../../../core/src/elements/Layout.ts";
+import { sva } from "../../../core/src/utils/sva.ts";
+
+const progressSva = sva({
+  base: {
+    width: "48px",
+    height: "48px",
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+});
+
+const svgSva = sva({
+  base: {
+    width: "100%",
+    height: "100%",
+    transform: "rotate(-90deg)",
+  },
+});
+
+const circleSva = sva({
+  base: {
+    cx: "44",
+    cy: "44",
+    r: "20.2",
+    fill: "none",
+    strokeWidth: "3.6",
+    stroke: "var(--md-primary)",
+    transition: "stroke-dashoffset 0.3s ease",
+  },
+});
 
 export class CircularProgress extends BaseElement {
   private _svg: SVGSVGElement;
@@ -9,18 +39,11 @@ export class CircularProgress extends BaseElement {
 
   constructor() {
     super("div");
-    this.element.className = "m3-circular-progress";
-    this.element.style.width = "48px";
-    this.element.style.height = "48px";
-    this.element.style.display = "inline-flex";
-    this.element.style.alignItems = "center";
-    this.element.style.justifyContent = "center";
+    this.element.className = "m3-circular-progress " + progressSva();
 
     this._svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
     this._svg.setAttribute("viewBox", "22 22 44 44");
-    this._svg.style.width = "100%";
-    this._svg.style.height = "100%";
-    this._svg.style.transform = "rotate(-90deg)";
+    this._svg.setAttribute("class", svgSva());
 
     this._circle = document.createElementNS(
       "http://www.w3.org/2000/svg",
@@ -31,10 +54,11 @@ export class CircularProgress extends BaseElement {
     this._circle.setAttribute("r", "20.2");
     this._circle.setAttribute("fill", "none");
     this._circle.setAttribute("stroke-width", "3.6");
-    this._circle.setAttribute("stroke", currentTheme.primary);
+    this._circle.setAttribute("stroke", "var(--md-primary)");
+    this._circle.setAttribute("class", circleSva());
+    
     this._circle.style.strokeDasharray = `${this._circumference}`;
     this._circle.style.strokeDashoffset = `${this._circumference}`;
-    this._circle.style.transition = "stroke-dashoffset 0.3s ease";
 
     this._svg.appendChild(this._circle);
     this.element.appendChild(this._svg);
@@ -58,7 +82,7 @@ export class CircularProgress extends BaseElement {
   }
 
   private ensureAnimations(): void {
-    if (!document.getElementById("m3-circular-anim")) {
+    if (typeof document !== "undefined" && !document.getElementById("m3-circular-anim")) {
       const style = document.createElement("style");
       style.id = "m3-circular-anim";
       style.textContent = `
@@ -80,10 +104,16 @@ export class CircularProgress extends BaseElement {
   }
 }
 
-export function CreateCircularProgress(): CircularProgress {
+function CreateCircularProgress(): CircularProgress {
   return new CircularProgress();
 }
 
+/**
+ * AddCircularProgress function.
+ * @param {LayoutElement} parent - The parent parameter
+ * @returns {CircularProgress}
+ *
+ */
 export function AddCircularProgress(parent: LayoutElement): CircularProgress {
   const progress = CreateCircularProgress();
   parent.AddChild(progress);

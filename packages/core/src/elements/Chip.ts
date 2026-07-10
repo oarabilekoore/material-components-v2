@@ -1,5 +1,5 @@
 import { InteractiveElement } from "../../../core/src/elements/interactive_element.ts";
-import { LayoutElement } from "../../../core/src/elements/layout_element.ts";
+import { LayoutElement } from "../../../core/src/elements/Layout.ts";
 import { currentTheme, ChipVariant } from "../theme.ts";
 
 const CHIP_HEIGHT = 32;
@@ -103,13 +103,21 @@ export class Chip extends InteractiveElement {
   }
 }
 
-export function CreateChip(
+function CreateChip(
   label: string,
   variant: ChipVariant = "assist",
 ): Chip {
   return new Chip(label, variant);
 }
 
+/**
+ * AddChip function.
+ * @param {LayoutElement} parent - The parent parameter
+ * @param {string} label - The label parameter
+ * @param {ChipVariant} variant - The variant parameter
+ * @returns {Chip}
+ *
+ */
 export function AddChip(
   parent: LayoutElement,
   label: string,

@@ -1,4 +1,4 @@
-import { BaseElement } from "./base_element.ts";
+import { BaseElement } from "./BaseElement.ts";
 
 /** A dropdown selection list. */
 export class SpinnerElement extends BaseElement {

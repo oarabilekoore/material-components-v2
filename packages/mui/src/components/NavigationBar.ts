@@ -1,5 +1,5 @@
-import { BaseElement } from "../../../core/src/elements/base_element.ts";
-import { LayoutElement } from "../../../core/src/elements/layout_element.ts";
+import { BaseElement } from "../../../core/src/elements/BaseElement.ts";
+import { LayoutElement } from "../../../core/src/elements/Layout.ts";
 import { currentTheme } from "../theme.ts";
 
 class NavigationBarItem extends BaseElement {
@@ -118,10 +118,16 @@ export class NavigationBar extends BaseElement {
   }
 }
 
-export function CreateNavigationBar(): NavigationBar {
+function CreateNavigationBar(): NavigationBar {
   return new NavigationBar();
 }
 
+/**
+ * AddNavigationBar function.
+ * @param {LayoutElement} parent - The parent parameter
+ * @returns {NavigationBar}
+ *
+ */
 export function AddNavigationBar(parent: LayoutElement): NavigationBar {
   const nav = CreateNavigationBar();
   parent.AddChild(nav);
