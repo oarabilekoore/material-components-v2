@@ -12,37 +12,42 @@ export interface Route {
 
 /** Path-based client-side router rendering into an outlet Layout. */
 export class BrowserRouter {
-  private routes: Route[];
+  private routes: Route[] = [];
   private outlet: LayoutElement;
   private notFound?: (params: RouteParams) => BaseElement;
 
   constructor(
-    routes: Route[],
     outlet: LayoutElement,
     options?: { notFound?: (params: RouteParams) => BaseElement },
   ) {
-    this.routes = routes;
     this.outlet = outlet;
     this.notFound = options?.notFound;
 
     if (typeof globalThis !== "undefined" && globalThis.addEventListener) {
-      globalThis.addEventListener("popstate", () => this.render());
+      globalThis.addEventListener("hashchange", () => this.render());
       
       // Intercept all local anchor link clicks
       globalThis.document.addEventListener("click", (e) => {
         const target = e.target as HTMLElement;
         const anchor = target.closest("a");
         if (anchor && anchor.href) {
-          const url = new URL(anchor.href);
+          const url = new URL(anchor.href, globalThis.location.href);
           if (url.origin === globalThis.location.origin) {
             e.preventDefault();
-            this.Navigate(url.pathname + url.search + url.hash);
+            const targetPath = url.pathname === "/" ? "/" : url.pathname;
+            this.Navigate(targetPath);
           }
         }
       });
     }
 
     this.render();
+  }
+
+  addRoute(path: string, render: (params: RouteParams) => BaseElement): this {
+    this.routes.push({ path, render });
+    this.render();
+    return this;
   }
 
   private matchRoute(
@@ -64,11 +69,18 @@ export class BrowserRouter {
     return null;
   }
 
+  private getPathname(): string {
+    if (typeof globalThis === "undefined" || !globalThis.location) return "/";
+    let hash = globalThis.location.hash;
+    if (hash.startsWith("#")) hash = hash.substring(1);
+    return hash || "/";
+  }
+
   private render() {
     if (typeof globalThis === "undefined" || !globalThis.location) return;
-    const pathname = globalThis.location.pathname;
+    const pathname = this.getPathname();
     const matched = this.matchRoute(pathname);
-    this.outlet.element.innerHTML = "";
+    this.outlet.Clear();
 
     if (matched) {
       this.outlet.AddChild(matched.route.render(matched.params));
@@ -79,10 +91,9 @@ export class BrowserRouter {
 
   /** Navigates to a new path without a full page reload. */
   Navigate(path: string) {
-    if (typeof globalThis === "undefined" || !globalThis.history) return;
-    if (globalThis.location.pathname !== path) {
-      globalThis.history.pushState({}, "", path);
-      this.render();
+    if (typeof globalThis === "undefined" || !globalThis.location) return;
+    if (this.getPathname() !== path) {
+      globalThis.location.hash = path;
     }
   }
 
@@ -103,9 +114,8 @@ export class BrowserRouter {
 
 /** Creates a browser router that renders matched routes into an outlet Layout. */
 export function CreateBrowserRouter(
-  routes: Route[],
   outlet: LayoutElement,
   options?: { notFound?: (params: RouteParams) => BaseElement },
 ): BrowserRouter {
-  return new BrowserRouter(routes, outlet, options);
+  return new BrowserRouter(outlet, options);
 }

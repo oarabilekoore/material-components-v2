@@ -1,4 +1,4 @@
-import { BaseElement } from "../../../core/src/elements/BaseElement.ts";
+import { OverlayElement } from "../../../core/src/elements/Overlay.ts";
 import { LayoutElement } from "../../../core/src/elements/Layout.ts";
 import { sva } from "../../../core/src/utils/sva.ts";
 
@@ -78,7 +78,37 @@ const daySva = sva({
   },
 });
 
-export class DatePicker extends BaseElement {
+const navBarSva = sva({
+  base: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: "8px",
+  },
+});
+
+const monthLabelSva = sva({
+  base: {
+    fontWeight: "500",
+  },
+});
+
+const navBtnSva = sva({
+  base: {
+    background: "none",
+    border: "none",
+    color: "var(--md-primary)",
+    cursor: "pointer",
+  },
+});
+
+const daysHeaderSpanSva = sva({
+  base: {
+    color: "var(--md-on-surface-variant)",
+  },
+});
+
+export class DatePicker extends OverlayElement {
   private currentYear: number;
   private currentMonth: number;
   private selectedDate: Date | null = null;
@@ -90,8 +120,8 @@ export class DatePicker extends BaseElement {
   private gridEl: HTMLDivElement;
 
   constructor() {
-    super("div");
-    this.element.className = pickerSva();
+    super("div", { scrim: true, dismissOnScrimClick: true, dismissOnEscape: true });
+    this.element.className = "m3-datepicker " + pickerSva();
 
     const today = new Date();
     this.currentYear = today.getFullYear();
@@ -108,28 +138,19 @@ export class DatePicker extends BaseElement {
     this.element.appendChild(this.titleEl);
 
     const navBar = document.createElement("div");
-    navBar.style.display = "flex";
-    navBar.style.justifyContent = "space-between";
-    navBar.style.alignItems = "center";
-    navBar.style.marginBottom = "8px";
+    navBar.className = navBarSva();
 
     this.monthLabelEl = document.createElement("span");
-    this.monthLabelEl.style.fontWeight = "500";
+    this.monthLabelEl.className = monthLabelSva();
     
     const prevBtn = document.createElement("button");
     prevBtn.textContent = "◀";
-    prevBtn.style.background = "none";
-    prevBtn.style.border = "none";
-    prevBtn.style.color = "var(--md-primary)";
-    prevBtn.style.cursor = "pointer";
+    prevBtn.className = navBtnSva();
     prevBtn.addEventListener("click", () => this.navigate(-1));
 
     const nextBtn = document.createElement("button");
     nextBtn.textContent = "▶";
-    nextBtn.style.background = "none";
-    nextBtn.style.border = "none";
-    nextBtn.style.color = "var(--md-primary)";
-    nextBtn.style.cursor = "pointer";
+    nextBtn.className = navBtnSva();
     nextBtn.addEventListener("click", () => this.navigate(1));
 
     navBar.appendChild(prevBtn);
@@ -142,7 +163,7 @@ export class DatePicker extends BaseElement {
     ["S", "M", "T", "W", "T", "F", "S"].forEach((d) => {
       const sp = document.createElement("span");
       sp.textContent = d;
-      sp.style.color = "var(--md-on-surface-variant)";
+      sp.className = daysHeaderSpanSva();
       daysHeader.appendChild(sp);
     });
     this.element.appendChild(daysHeader);
@@ -193,13 +214,23 @@ export class DatePicker extends BaseElement {
 
       dayEl.className = daySva({ selected: isSelected, today: isToday });
       dayEl.textContent = String(day);
+      dayEl.tabIndex = 0;
 
-      dayEl.addEventListener("click", () => {
+      const selectDay = () => {
         this.selectedDate = new Date(this.currentYear, this.currentMonth, day);
         this.titleEl.textContent = this.selectedDate.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
         this.render();
         if (this.onSelectCallback) {
           this.onSelectCallback(this.selectedDate);
+        }
+        this.Close();
+      };
+
+      dayEl.addEventListener("click", selectDay);
+      dayEl.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          selectDay();
         }
       });
 

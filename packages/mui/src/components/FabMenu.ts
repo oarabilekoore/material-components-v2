@@ -1,5 +1,7 @@
+import { Icon, SvgIconNode, Icons } from "../icons/Icon.ts";
 import { BaseElement } from "../../../core/src/elements/BaseElement.ts";
 import { sva } from "../../../core/src/utils/sva.ts";
+import { Signal, CreateSignal, Bind } from "../../../core/src/state/signals.ts";
 
 const menuSva = sva({
   base: {
@@ -41,11 +43,20 @@ const toggleBtnSva = sva({
     alignSelf: "flex-end",
     outline: "none",
   },
+  variants: {
+    open: {
+      true: { transform: "rotate(135deg)" },
+      false: { transform: "rotate(0deg)" }
+    }
+  },
+  defaultVariants: { open: false }
 });
 
 const toggleIconSva = sva({
   base: {
-    fontSize: "24px",
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
     transition: "transform 0.2s ease",
   },
 });
@@ -60,6 +71,21 @@ const rowSva = sva({
     pointerEvents: "none",
     transition: "opacity 0.15s ease, transform 0.15s ease",
   },
+  variants: {
+    visible: {
+      true: {
+        opacity: "1",
+        transform: "translateY(0)",
+        pointerEvents: "auto",
+      },
+      false: {
+        opacity: "0",
+        transform: "translateY(8px)",
+        pointerEvents: "none",
+      }
+    }
+  },
+  defaultVariants: { visible: false }
 });
 
 const chipSva = sva({
@@ -91,37 +117,42 @@ const itemBtnSva = sva({
 });
 
 interface FabMenuItem {
-  icon: string;
+  iconNodes: SvgIconNode[];
   label: string;
   callback: () => void;
   row: HTMLDivElement;
 }
 
 export class FabMenu extends BaseElement {
+  private toggleBtnObj: BaseElement;
   private toggleBtn: HTMLButtonElement;
   private toggleIcon: HTMLSpanElement;
   private itemsContainer: HTMLDivElement;
   private items: FabMenuItem[] = [];
-  private _isOpen = false;
-  private openIcon: string;
-  private closeIcon: string;
+  private _isOpen: Signal<boolean>;
+  private openIconNodes: SvgIconNode[];
+  private closeIconNodes: SvgIconNode[];
+  private _currentToggleIcon?: Icon;
+  private _morphShape = false;
 
-  constructor(openIcon = "add", closeIcon = "close") {
+  constructor(openIconNodes: SvgIconNode[] = Icons.add, closeIconNodes: SvgIconNode[] = Icons.close) {
     super("div");
-    this.openIcon = openIcon;
-    this.closeIcon = closeIcon;
+    this.openIconNodes = openIconNodes;
+    this.closeIconNodes = closeIconNodes;
 
     this.element.className = "m3-fab-menu " + menuSva();
 
     this.itemsContainer = document.createElement("div");
     this.itemsContainer.className = containerSva();
 
-    this.toggleBtn = document.createElement("button");
-    this.toggleBtn.className = toggleBtnSva();
+    this.toggleBtnObj = new BaseElement("button");
+    this.toggleBtnObj.element.className = toggleBtnSva();
+    this.toggleBtn = this.toggleBtnObj.element as HTMLButtonElement;
 
     this.toggleIcon = document.createElement("span");
-    this.toggleIcon.className = "material-icons " + toggleIconSva();
-    this.toggleIcon.textContent = openIcon;
+    this.toggleIcon.className = toggleIconSva();
+    this._currentToggleIcon = new Icon(openIconNodes);
+    this.toggleIcon.appendChild(this._currentToggleIcon.element);
     this.toggleBtn.appendChild(this.toggleIcon);
 
     this.toggleBtn.addEventListener("click", () => this.Toggle());
@@ -131,10 +162,57 @@ export class FabMenu extends BaseElement {
 
     if (typeof document !== "undefined") {
       document.body.appendChild(this.element);
+      document.addEventListener("click", (e) => {
+        if (!this.element.contains(e.target as Node) && this.IsOpen()) {
+          this.Close();
+        }
+      });
     }
+
+    this._isOpen = CreateSignal(false);
+    
+    let isInitial = true;
+    Bind(this._isOpen, (isOpen) => {
+      if (isOpen) {
+        if (this._morphShape) {
+          if (!isInitial) {
+            this.toggleBtnObj.MorphShape("16px", "28px", 200);
+          } else {
+            this.toggleBtn.style.borderRadius = "28px";
+          }
+        }
+        if (this._currentToggleIcon) this._currentToggleIcon.Dispose();
+        this._currentToggleIcon = new Icon(this.closeIconNodes);
+        this.toggleIcon.innerHTML = "";
+        this.toggleIcon.appendChild(this._currentToggleIcon.element);
+        this.toggleBtn.className = toggleBtnSva({ open: true });
+        this.items.forEach((item, i) => {
+          setTimeout(() => {
+            item.row.className = rowSva({ visible: true });
+          }, i * 30);
+        });
+      } else {
+        if (this._morphShape) {
+          if (!isInitial) {
+            this.toggleBtnObj.MorphShape("28px", "16px", 200);
+          } else {
+            this.toggleBtn.style.borderRadius = "16px";
+          }
+        }
+        if (this._currentToggleIcon) this._currentToggleIcon.Dispose();
+        this._currentToggleIcon = new Icon(this.openIconNodes);
+        this.toggleIcon.innerHTML = "";
+        this.toggleIcon.appendChild(this._currentToggleIcon.element);
+        this.toggleBtn.className = toggleBtnSva({ open: false });
+        this.items.forEach((item) => {
+          item.row.className = rowSva({ visible: false });
+        });
+      }
+      isInitial = false;
+    });
   }
 
-  AddItem(icon: string, label: string, callback: () => void): this {
+  AddItem(iconNodes: SvgIconNode[], label: string, callback: () => void): this {
     const row = document.createElement("div");
     row.className = rowSva();
 
@@ -145,11 +223,8 @@ export class FabMenu extends BaseElement {
     const iconBtn = document.createElement("button");
     iconBtn.className = itemBtnSva();
 
-    const iconSpan = document.createElement("span");
-    iconSpan.className = "material-icons";
-    iconSpan.textContent = icon;
-    iconSpan.style.fontSize = "20px";
-    iconBtn.appendChild(iconSpan);
+    const iconObj = new Icon(iconNodes, 20);
+    iconBtn.appendChild(iconObj.element);
 
     iconBtn.addEventListener("click", () => {
       callback();
@@ -160,42 +235,37 @@ export class FabMenu extends BaseElement {
     row.appendChild(iconBtn);
     this.itemsContainer.appendChild(row);
 
-    this.items.push({ icon, label, callback, row });
+    this.items.push({ iconNodes, label, callback, row });
+    return this;
+  }
+
+  SetShapeMorph(enable = true): this {
+    this._morphShape = enable;
+    if (this._morphShape) {
+      this.toggleBtn.style.borderRadius = this._isOpen.Get() ? "28px" : "16px";
+    } else {
+      this.toggleBtn.style.borderRadius = ""; // reset to default sva styles
+    }
     return this;
   }
 
   Open(): this {
-    this._isOpen = true;
-    this.toggleIcon.textContent = this.closeIcon;
-    this.toggleBtn.style.transform = "rotate(135deg)";
-    this.items.forEach((item, i) => {
-      setTimeout(() => {
-        item.row.style.opacity = "1";
-        item.row.style.transform = "translateY(0)";
-        item.row.style.pointerEvents = "auto";
-      }, i * 30);
-    });
+    this._isOpen.Set(true);
     return this;
   }
 
   Close(): this {
-    this._isOpen = false;
-    this.toggleIcon.textContent = this.openIcon;
-    this.toggleBtn.style.transform = "rotate(0deg)";
-    this.items.forEach((item) => {
-      item.row.style.opacity = "0";
-      item.row.style.transform = "translateY(8px)";
-      item.row.style.pointerEvents = "none";
-    });
+    this._isOpen.Set(false);
     return this;
   }
 
   Toggle(): this {
-    return this._isOpen ? this.Close() : this.Open();
+    this._isOpen.Set(!this._isOpen.Get());
+    return this;
   }
 
   IsOpen(): boolean {
-    return this._isOpen;
+    return this._isOpen.Get();
   }
 
   override GetType(): string {
@@ -203,6 +273,23 @@ export class FabMenu extends BaseElement {
   }
 }
 
-function CreateFabMenu(openIcon = "add", closeIcon = "close"): FabMenu {
-  return new FabMenu(openIcon, closeIcon);
+function CreateFabMenu(openIconNodes: SvgIconNode[] = Icons.add, closeIconNodes: SvgIconNode[] = Icons.close): FabMenu {
+  return new FabMenu(openIconNodes, closeIconNodes);
+}
+
+/**
+ * AddFabMenu function.
+ * @param {import("../../../core/src/elements/Layout.ts").LayoutElement} parent - The parent parameter
+ * @param {SvgIconNode[]} openIconNodes - The open icon nodes parameter
+ * @param {SvgIconNode[]} closeIconNodes - The close icon nodes parameter
+ * @returns {FabMenu}
+ */
+export function AddFabMenu(
+  parent: import("../../../core/src/elements/Layout.ts").LayoutElement,
+  openIconNodes: SvgIconNode[] = Icons.add,
+  closeIconNodes: SvgIconNode[] = Icons.close,
+): FabMenu {
+  const menu = CreateFabMenu(openIconNodes, closeIconNodes);
+  parent.AddChild(menu);
+  return menu;
 }

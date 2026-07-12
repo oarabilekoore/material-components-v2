@@ -10,6 +10,7 @@ export class BaseElement {
   private goneDisplay = "";
   private longTouchTimer: number | undefined;
   private _appliedStyleClass = "";
+  protected _cleanupTasks: Array<() => void> = [];
 
   /** Attaches CSS declaration/object style rules directly to the dynamic stylesheet */
   SetStyle(
@@ -227,6 +228,96 @@ export class BaseElement {
     return this;
   }
 
+  /** Sets text color. */
+  SetColor(color: string) {
+    this.element.style.color = color;
+    return this;
+  }
+
+  /** Sets background color. */
+  SetBackgroundColor(color: string) {
+    this.element.style.backgroundColor = color;
+    return this;
+  }
+
+  /** Sets border radius. */
+  SetBorderRadius(radius: string | number) {
+    this.element.style.borderRadius = typeof radius === "number" ? `${radius}px` : radius;
+    return this;
+  }
+
+  /** Sets box shadow. */
+  SetBoxShadow(shadow: string) {
+    this.element.style.boxShadow = shadow;
+    return this;
+  }
+
+  /** Sets font family. */
+  SetFontFamily(fontFamily: string) {
+    this.element.style.fontFamily = fontFamily;
+    return this;
+  }
+
+  /** Sets font size. */
+  SetFontSize(size: string | number) {
+    this.element.style.fontSize = typeof size === "number" ? `${size}px` : size;
+    return this;
+  }
+
+  /** Sets font weight. */
+  SetFontWeight(weight: string | number) {
+    this.element.style.fontWeight = String(weight);
+    return this;
+  }
+
+  /** Sets display property. */
+  SetDisplay(display: string) {
+    this.element.style.display = display;
+    return this;
+  }
+
+  /** Sets align-items. */
+  SetAlignItems(align: string) {
+    this.element.style.alignItems = align;
+    return this;
+  }
+
+  /** Sets justify-content. */
+  SetJustifyContent(justify: string) {
+    this.element.style.justifyContent = justify;
+    return this;
+  }
+
+  /** Sets border. */
+  SetBorder(border: string) {
+    this.element.style.border = border;
+    return this;
+  }
+
+  /** Sets outline. */
+  SetOutline(outline: string) {
+    this.element.style.outline = outline;
+    return this;
+  }
+
+  /** Sets transition. */
+  SetTransition(transition: string) {
+    this.element.style.transition = transition;
+    return this;
+  }
+
+  /** Sets opacity. */
+  SetOpacity(opacity: number | string) {
+    this.element.style.opacity = String(opacity);
+    return this;
+  }
+
+  /** Sets z-index. */
+  SetZIndex(zIndex: number | string) {
+    this.element.style.zIndex = String(zIndex);
+    return this;
+  }
+
   /** Makes visible, restoring layout space. */
   Show() {
     this.element.style.display = this.goneDisplay;
@@ -337,24 +428,59 @@ export class BaseElement {
     );
   }
 
+  private _onTouchCb?: (event: MouseEvent) => void;
+
   /** Fires on click/tap. */
   SetOnTouch(callback: (event: MouseEvent) => void) {
+    if (this._onTouchCb) {
+      this.element.removeEventListener("click", this._onTouchCb);
+    }
+    this._onTouchCb = callback;
     this.element.addEventListener("click", callback);
     return this;
   }
 
+  private _onMousedownCb?: (e: MouseEvent) => void;
+  private _onMouseupCb?: () => void;
+  private _onMouseleaveCb?: () => void;
+
   /** Fires after holding for holdMs (default 500). */
   SetOnLongTouch(callback: (event: MouseEvent) => void, holdMs = 500) {
-    this.element.addEventListener("mousedown", (e) => {
+    if (this._onMousedownCb) this.element.removeEventListener("mousedown", this._onMousedownCb);
+    if (this._onMouseupCb) this.element.removeEventListener("mouseup", this._onMouseupCb);
+    if (this._onMouseleaveCb) this.element.removeEventListener("mouseleave", this._onMouseleaveCb);
+
+    this._onMousedownCb = (e: MouseEvent) => {
       this.longTouchTimer = window.setTimeout(() => callback(e), holdMs);
-    });
-    this.element.addEventListener("mouseup", () =>
-      clearTimeout(this.longTouchTimer),
-    );
-    this.element.addEventListener("mouseleave", () =>
-      clearTimeout(this.longTouchTimer),
-    );
+    };
+    this._onMouseupCb = () => clearTimeout(this.longTouchTimer);
+    this._onMouseleaveCb = () => clearTimeout(this.longTouchTimer);
+
+    this.element.addEventListener("mousedown", this._onMousedownCb);
+    this.element.addEventListener("mouseup", this._onMouseupCb);
+    this.element.addEventListener("mouseleave", this._onMouseleaveCb);
     return this;
+  }
+
+  RegisterCleanup(task: () => void): this {
+    this._cleanupTasks.push(task);
+    return this;
+  }
+
+  Dispose(): void {
+    this._cleanupTasks.forEach((task) => task());
+    this._cleanupTasks = [];
+    if (this._onTouchCb) this.element.removeEventListener("click", this._onTouchCb);
+    if (this._onMousedownCb) this.element.removeEventListener("mousedown", this._onMousedownCb);
+    if (this._onMouseupCb) this.element.removeEventListener("mouseup", this._onMouseupCb);
+    if (this._onMouseleaveCb) this.element.removeEventListener("mouseleave", this._onMouseleaveCb);
+    
+    // Use remove() rather than innerHTML for direct children if this is called recursively?
+    // Child disposal is handled by subclasses like LayoutElement.
+    
+    if (this.element.parentElement) {
+      this.element.parentElement.removeChild(this.element);
+    }
   }
 
   /** Runs a Web Animations API animation. */
@@ -391,6 +517,23 @@ export class BaseElement {
       },
     ];
     return this.Animate(keyframes, { duration, fill: "forwards" }, callback);
+  }
+
+  /** Animates border radius from one value to another (e.g. "50%" to "16px"). */
+  MorphShape(
+    radius1: string | number,
+    radius2: string | number,
+    durationMs = 300,
+    callback?: () => void,
+  ) {
+    const r1 = typeof radius1 === "number" ? `${radius1}px` : radius1;
+    const r2 = typeof radius2 === "number" ? `${radius2}px` : radius2;
+    this.element.style.borderRadius = r2;
+    return this.Animate(
+      [{ borderRadius: r1 }, { borderRadius: r2 }],
+      { duration: durationMs, fill: "forwards", easing: "cubic-bezier(0.2, 0, 0, 1)" },
+      callback,
+    );
   }
 
   /** Calls multiple setter methods at once from a { MethodName: [args] } map. */

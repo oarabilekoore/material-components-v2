@@ -25,6 +25,12 @@ export function attachRipple(element: HTMLElement) {
   }, { passive: true });
 }
 
+/**
+ * createRipple function.
+ * @param {MouseEvent} event - The event parameter
+ * @param {HTMLElement} element - The element parameter
+ *
+ */
 function createRipple(event: MouseEvent, element: HTMLElement) {
   const ripple = document.createElement("span");
   

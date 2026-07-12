@@ -62,6 +62,8 @@ export class CircularProgress extends BaseElement {
 
     this._svg.appendChild(this._circle);
     this.element.appendChild(this._svg);
+
+    this.SetProgress(null);
   }
 
   SetProgress(value: number | null): this {
@@ -75,7 +77,7 @@ export class CircularProgress extends BaseElement {
       this._svg.style.animation = "none";
       this._circle.style.animation = "none";
       this._circle.style.transition = "stroke-dashoffset 0.3s ease";
-      const offset = this._circumference - (value / 100) * this._circumference;
+      const offset = this._circumference - value * this._circumference;
       this._circle.style.strokeDashoffset = `${offset}`;
     }
     return this;

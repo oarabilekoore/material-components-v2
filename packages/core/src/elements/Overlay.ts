@@ -1,4 +1,5 @@
 import { BaseElement } from "./BaseElement.ts";
+import { Signal, CreateSignal, Bind } from "../state/signals.ts";
 
 export interface OverlayOptions {
   /** Renders a full-screen scrim behind the overlay (Dialog: yes, Menu/Tooltip: no). */
@@ -12,6 +13,10 @@ export interface OverlayOptions {
   dismissOnOutsideClick?: boolean;
   /** display value to use when open. Default "flex". */
   display?: string;
+  /** Milliseconds to wait before hiding and unmounting elements when closed. */
+  exitAnimationMs?: number;
+  /** Whether to append the overlay/scrim to document.body. Default true. */
+  mountToBody?: boolean;
 }
 
 let zCounter = 2000;
@@ -26,9 +31,10 @@ let zCounter = 2000;
 export class OverlayElement extends BaseElement {
   protected scrimEl: HTMLDivElement | null = null;
 
-  private _isOpen = false;
+  private _isOpenSignal: Signal<boolean>;
   private _mounted = false;
   private _onDismiss?: () => void;
+  private _closeTimeout?: number;
   private _opts: Required<OverlayOptions>;
 
   private _outsideClickHandler = (e: MouseEvent) => {
@@ -46,6 +52,8 @@ export class OverlayElement extends BaseElement {
       dismissOnEscape: options.dismissOnEscape ?? true,
       dismissOnOutsideClick: options.dismissOnOutsideClick ?? false,
       display: options.display ?? "flex",
+      exitAnimationMs: options.exitAnimationMs ?? 0,
+      mountToBody: options.mountToBody ?? true,
     };
 
     this.element.style.display = "none";
@@ -65,6 +73,36 @@ export class OverlayElement extends BaseElement {
     } else {
       this.element.style.position = "fixed";
     }
+
+    this._isOpenSignal = CreateSignal(false);
+    Bind(this._isOpenSignal, (isOpen) => {
+      if (isOpen) {
+        if (this._closeTimeout) clearTimeout(this._closeTimeout);
+        this.mount();
+        this.element.style.display = this._opts.display;
+        if (this.scrimEl) this.scrimEl.style.display = "flex";
+        if (this._opts.dismissOnEscape) {
+          document.addEventListener("keydown", this._escHandler);
+        }
+        if (this._opts.dismissOnOutsideClick) {
+          setTimeout(() => document.addEventListener("click", this._outsideClickHandler), 0);
+        }
+      } else {
+        document.removeEventListener("keydown", this._escHandler);
+        document.removeEventListener("click", this._outsideClickHandler);
+        if (this._opts.exitAnimationMs > 0) {
+          this._closeTimeout = window.setTimeout(() => {
+            this.element.style.display = "none";
+            if (this.scrimEl) this.scrimEl.style.display = "none";
+            this.unmount();
+          }, this._opts.exitAnimationMs);
+        } else {
+          this.element.style.display = "none";
+          if (this.scrimEl) this.scrimEl.style.display = "none";
+          this.unmount();
+        }
+      }
+    });
   }
 
   /** Sets the scrim's background (e.g. `rgba(0,0,0,0.4)`). No-op if this
@@ -89,16 +127,22 @@ export class OverlayElement extends BaseElement {
     if (this.scrimEl) {
       this.scrimEl.style.zIndex = String(z - 1);
       this.scrimEl.appendChild(this.element);
-      document.body.appendChild(this.scrimEl);
+      if (this._opts.mountToBody && typeof document !== "undefined") {
+        document.body.appendChild(this.scrimEl);
+      }
     } else {
-      document.body.appendChild(this.element);
+      if (this._opts.mountToBody && typeof document !== "undefined") {
+        document.body.appendChild(this.element);
+      }
     }
   }
 
-  private unmount(): void {
+  protected unmount(): void {
     if (!this._mounted) return;
     this._mounted = false;
-    (this.scrimEl ?? this.element).remove();
+    if (this._opts.mountToBody) {
+      (this.scrimEl ?? this.element).remove();
+    }
   }
 
   /** Called by the scrim/Escape/outside-click handlers; runs the dismiss
@@ -110,39 +154,27 @@ export class OverlayElement extends BaseElement {
   }
 
   override Show(): this {
-    this._isOpen = true;
-    this.mount();
-    this.element.style.display = this._opts.display;
-    if (this.scrimEl) this.scrimEl.style.display = "flex";
-
-    if (this._opts.dismissOnEscape) {
-      document.addEventListener("keydown", this._escHandler);
-    }
-    if (this._opts.dismissOnOutsideClick) {
-      // deferred so the click that opened the overlay doesn't also close it
-      setTimeout(() => document.addEventListener("click", this._outsideClickHandler), 0);
-    }
+    this._isOpenSignal.Set(true);
     return this;
   }
 
   Close(): this {
-    this._isOpen = false;
-    this.element.style.display = "none";
-    if (this.scrimEl) this.scrimEl.style.display = "none";
-    document.removeEventListener("keydown", this._escHandler);
-    document.removeEventListener("click", this._outsideClickHandler);
-    this.unmount();
+    this._isOpenSignal.Set(false);
     return this;
   }
 
   IsOpen(): boolean {
-    return this._isOpen;
+    return this._isOpenSignal.Get();
+  }
+
+  GetIsOpenSignal(): Signal<boolean> {
+    return this._isOpenSignal;
   }
 
   /** Opens (if needed) and positions the overlay at an absolute screen
    * coordinate. For scrim-less anchored popups: menus, tooltips. */
   OpenAt(x: number, y: number): this {
-    if (!this._isOpen) this.Show();
+    if (!this.IsOpen()) this.Show();
     this.element.style.position = "absolute";
     this.element.style.left = `${x}px`;
     this.element.style.top = `${y}px`;

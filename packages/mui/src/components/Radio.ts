@@ -1,6 +1,31 @@
 import { BaseElement } from "../../../core/src/elements/BaseElement.ts";
 import { LayoutElement } from "../../../core/src/elements/Layout.ts";
 import { currentTheme } from "../theme.ts";
+import { sva } from "../../../core/src/utils/sva.ts";
+
+const radioContainerSva = sva({
+  base: {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: "8px",
+    cursor: "pointer",
+    fontFamily: "var(--md-font-family, Roboto, sans-serif)",
+  },
+});
+
+const radioInputSva = sva({
+  base: {
+    width: "20px",
+    height: "20px",
+    accentColor: "var(--md-primary)",
+  },
+});
+
+const radioLabelSva = sva({
+  base: {
+    color: "var(--md-on-surface)",
+  },
+});
 
 export class Radio extends BaseElement {
   private input: HTMLInputElement;
@@ -8,24 +33,17 @@ export class Radio extends BaseElement {
 
   constructor(name: string, value: string, label: string = "") {
     super("label");
-    this.element.className = "m3-radio";
-    this.element.style.display = "inline-flex";
-    this.element.style.alignItems = "center";
-    this.element.style.gap = "8px";
-    this.element.style.cursor = "pointer";
-    this.element.style.fontFamily = currentTheme.fontFamily;
+    this.element.className = "m3-radio " + radioContainerSva();
 
     this.input = document.createElement("input");
     this.input.type = "radio";
     this.input.name = name;
     this.input.value = value;
-    this.input.style.width = "20px";
-    this.input.style.height = "20px";
-    this.input.style.accentColor = currentTheme.primary;
+    this.input.className = radioInputSva();
 
     this.labelEl = document.createElement("span");
     this.labelEl.textContent = label;
-    this.labelEl.style.color = currentTheme.onSurface;
+    this.labelEl.className = radioLabelSva();
 
     this.element.appendChild(this.input);
     this.element.appendChild(this.labelEl);

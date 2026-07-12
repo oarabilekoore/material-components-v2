@@ -1,9 +1,18 @@
+import { Icon, SvgIconNode, Icons } from "../icons/Icon.ts";
 import { BaseElement } from "../../../core/src/elements/BaseElement.ts";
 import { LayoutElement } from "../../../core/src/elements/Layout.ts";
 import { ChipVariant } from "../theme.ts";
 import { sva } from "../../../core/src/utils/sva.ts";
 
 import { attachRipple } from "../../../core/src/utils/ripple.ts";
+
+const removeBtnSva = sva({
+  base: {
+    display: "inline-flex",
+    marginLeft: "4px",
+    cursor: "pointer",
+  },
+});
 
 const chipSva = sva({
   base: {
@@ -44,6 +53,7 @@ export class Chip extends BaseElement {
   private selected = false;
   private labelSpan: HTMLSpanElement;
   private removeBtn?: HTMLSpanElement;
+  private checkmarkIcon?: Icon;
   private onRemove?: () => void;
   private onSelect?: (selected: boolean) => void;
   private _svaClass = "";
@@ -58,17 +68,22 @@ export class Chip extends BaseElement {
 
     if (variant === "input") {
       this.removeBtn = document.createElement("span");
-      this.removeBtn.className = "material-icons";
-      this.removeBtn.textContent = "close";
-      this.removeBtn.style.fontSize = "18px";
-      this.removeBtn.style.marginLeft = "4px";
-      this.removeBtn.style.cursor = "pointer";
+      this.removeBtn.className = removeBtnSva();
+      const icon = new Icon(Icons.close, 18);
+      this.removeBtn.appendChild(icon.element);
       this.removeBtn.addEventListener("click", (e) => {
         e.stopPropagation();
         this.onRemove?.();
         this.element.remove();
       });
       this.element.appendChild(this.removeBtn);
+    }
+
+    if (variant === "filter") {
+      this.checkmarkIcon = new Icon(Icons.check, 18);
+      this.checkmarkIcon.element.style.display = "none";
+      this.checkmarkIcon.element.style.marginRight = "-4px";
+      this.element.insertBefore(this.checkmarkIcon.element, this.labelSpan);
     }
 
     this.element.addEventListener("click", () => {
@@ -89,6 +104,9 @@ export class Chip extends BaseElement {
     }
     this._svaClass = chipSva({ selected: this.selected });
     this.element.classList.add(this._svaClass);
+    if (this.checkmarkIcon) {
+      this.checkmarkIcon.element.style.display = this.selected ? "inline-flex" : "none";
+    }
   }
 
   SetSelected(selected: boolean): this {

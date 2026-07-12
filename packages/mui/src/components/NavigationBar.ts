@@ -1,59 +1,104 @@
+import { Icon, SvgIconNode, Icons } from "../icons/Icon.ts";
 import { BaseElement } from "../../../core/src/elements/BaseElement.ts";
 import { LayoutElement } from "../../../core/src/elements/Layout.ts";
 import { currentTheme } from "../theme.ts";
+import { sva } from "../../../core/src/utils/sva.ts";
+
+const navBarSva = sva({
+  base: {
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    height: "80px",
+    width: "100%",
+    backgroundColor: "var(--md-surface)", // Note: fallback if surfaceContainer missing
+    boxShadow: "0 -1px 3px rgba(0,0,0,0.1)",
+    fontFamily: "var(--md-font-family, Roboto, sans-serif)",
+  },
+});
+
+const navBarItemSva = sva({
+  base: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    flex: "1",
+    height: "100%",
+    cursor: "pointer",
+    minWidth: "48px",
+    maxWidth: "80px",
+  },
+});
+
+const iconContainerSva = sva({
+  base: {
+    width: "64px",
+    height: "32px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: "16px",
+    marginBottom: "4px",
+    transition: "background-color 0.2s ease, color 0.2s ease",
+  },
+  variants: {
+    active: {
+      true: {
+        backgroundColor: "var(--md-secondary-container)",
+        color: "var(--md-on-secondary-container)",
+      },
+      false: {
+        backgroundColor: "transparent",
+        color: "var(--md-on-surface-variant)",
+      },
+    },
+  },
+  defaultVariants: { active: false },
+});
+
+const labelSva = sva({
+  base: {
+    fontSize: "12px",
+    fontWeight: "500",
+    transition: "color 0.2s ease",
+  },
+  variants: {
+    active: {
+      true: { color: "var(--md-on-surface)" },
+      false: { color: "var(--md-on-surface-variant)" },
+    },
+  },
+  defaultVariants: { active: false },
+});
 
 class NavigationBarItem extends BaseElement {
   private _iconContainer: HTMLDivElement;
+  private _icon: Icon;
   private _labelEl: HTMLSpanElement;
   private _value: string;
 
-  constructor(icon: string, label: string, value: string) {
+  constructor(iconNodes: SvgIconNode[], label: string, value: string) {
     super("div");
     this._value = value;
-
-    this.element.style.display = "flex";
-    this.element.style.flexDirection = "column";
-    this.element.style.alignItems = "center";
-    this.element.style.justifyContent = "center";
-    this.element.style.flex = "1";
-    this.element.style.height = "100%";
-    this.element.style.cursor = "pointer";
-    this.element.style.minWidth = "48px";
-    this.element.style.maxWidth = "80px";
+    this.element.className = navBarItemSva();
 
     this._iconContainer = document.createElement("div");
-    this._iconContainer.className = "material-icons";
-    this._iconContainer.textContent = icon;
-    this._iconContainer.style.width = "64px";
-    this._iconContainer.style.height = "32px";
-    this._iconContainer.style.display = "flex";
-    this._iconContainer.style.alignItems = "center";
-    this._iconContainer.style.justifyContent = "center";
-    this._iconContainer.style.borderRadius = "16px";
-    this._iconContainer.style.marginBottom = "4px";
-    this._iconContainer.style.transition = "background-color 0.2s ease";
+    this._iconContainer.className = iconContainerSva({ active: false });
+    this._icon = new Icon(iconNodes);
+    this._iconContainer.appendChild(this._icon.element);
 
     this._labelEl = document.createElement("span");
     this._labelEl.textContent = label;
-    this._labelEl.style.fontSize = "12px";
-    this._labelEl.style.fontWeight = "500";
-    this._labelEl.style.color = currentTheme.onSurfaceVariant;
+    this._labelEl.className = labelSva({ active: false });
 
     this.element.appendChild(this._iconContainer);
     this.element.appendChild(this._labelEl);
   }
 
   SetActive(active: boolean): void {
-    if (active) {
-      this._iconContainer.style.backgroundColor =
-        currentTheme.secondaryContainer;
-      this._iconContainer.style.color = currentTheme.onSecondaryContainer;
-      this._labelEl.style.color = currentTheme.onSurface;
-    } else {
-      this._iconContainer.style.backgroundColor = "transparent";
-      this._iconContainer.style.color = currentTheme.onSurfaceVariant;
-      this._labelEl.style.color = currentTheme.onSurfaceVariant;
-    }
+    this._iconContainer.className = iconContainerSva({ active });
+    this._labelEl.className = labelSva({ active });
   }
 
   GetValue(): string {
@@ -68,20 +113,15 @@ export class NavigationBar extends BaseElement {
 
   constructor() {
     super("nav");
-    this.element.className = "m3-navigation-bar";
-    this.element.style.display = "flex";
-    this.element.style.justifyContent = "center";
-    this.element.style.alignItems = "center";
-    this.element.style.height = "80px";
-    this.element.style.width = "100%";
-    this.element.style.backgroundColor =
-      currentTheme.surfaceContainer || currentTheme.surface;
-    this.element.style.boxShadow = `0 -1px 3px rgba(0,0,0,0.1)`;
-    this.element.style.fontFamily = currentTheme.fontFamily;
+    this.element.className = "m3-navigation-bar " + navBarSva();
+    // Re-apply background color using theme if surfaceContainer is available
+    if (currentTheme.surfaceContainer) {
+      this.element.style.backgroundColor = currentTheme.surfaceContainer;
+    }
   }
 
-  AddItem(icon: string, label: string, value: string): this {
-    const item = new NavigationBarItem(icon, label, value);
+  AddItem(iconNodes: SvgIconNode[], label: string, value: string): this {
+    const item = new NavigationBarItem(iconNodes, label, value);
     const index = this._items.length;
 
     item.element.addEventListener("click", () => this.Select(index));

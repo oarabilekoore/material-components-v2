@@ -11,6 +11,23 @@ const containerSva = sva({
     padding: "8px",
     userSelect: "none",
   },
+  variants: {
+    disabled: {
+      true: {
+        opacity: "0.38",
+        cursor: "not-allowed",
+        pointerEvents: "none",
+      },
+      false: {
+        opacity: "1",
+        cursor: "pointer",
+        pointerEvents: "auto",
+      },
+    },
+  },
+  defaultVariants: {
+    disabled: false,
+  },
 });
 
 const inputSva = sva({
@@ -158,9 +175,7 @@ export class Checkbox extends BaseElement {
 
   override SetEnabled(enabled: boolean): this {
     this.input.disabled = !enabled;
-    this.element.style.opacity = enabled ? "1" : "0.38";
-    this.element.style.cursor = enabled ? "pointer" : "not-allowed";
-    this.element.style.pointerEvents = enabled ? "auto" : "none";
+    this.element.className = "m3-checkbox " + containerSva({ disabled: !enabled });
     return this;
   }
 

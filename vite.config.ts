@@ -1,8 +1,7 @@
-import { defineConfig } from "npm:vite";
-import { tsrx } from "npm:@tsrx/vite-plugin-tsrx";
+import { defineConfig } from "vite";
 
 export default defineConfig({
-  plugins: [tsrx()],
+  plugins: [],
   build: {
     outDir: "dist",
     emptyOutDir: true,

@@ -40,6 +40,7 @@ const fabContainerSva = sva({
 export class BottomAppBar extends BaseElement {
   private _actionsContainer: HTMLDivElement;
   private _fabContainer: HTMLDivElement;
+  private _fab?: BaseElement;
 
   constructor() {
     super("div");
@@ -60,7 +61,10 @@ export class BottomAppBar extends BaseElement {
   }
 
   SetFab(fab: BaseElement): this {
-    this._fabContainer.innerHTML = "";
+    if (this._fab) {
+      this._fab.Dispose();
+    }
+    this._fab = fab;
     this._fabContainer.appendChild(fab.element);
     return this;
   }

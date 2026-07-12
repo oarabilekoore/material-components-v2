@@ -1,32 +1,62 @@
 import { BaseElement } from "../../../core/src/elements/BaseElement.ts";
 import { LayoutElement } from "../../../core/src/elements/Layout.ts";
 import { currentTheme } from "../theme.ts";
+import { sva } from "../../../core/src/utils/sva.ts";
+
+const containerSva = sva({
+  base: {
+    width: "100%",
+    height: "4px",
+    position: "relative",
+    overflow: "hidden",
+    borderRadius: "2px",
+    backgroundColor: "var(--md-surface-variant)",
+  },
+});
+
+const trackSva = sva({
+  base: {
+    width: "100%",
+    height: "100%",
+    position: "absolute",
+    backgroundColor: "var(--md-surface-variant)",
+  },
+});
+
+const indicatorSva = sva({
+  base: {
+    height: "100%",
+    position: "absolute",
+    backgroundColor: "var(--md-primary)",
+    transition: "width 0.2s linear",
+  },
+  variants: {
+    indeterminate: {
+      true: {
+        width: "50%",
+        animation: "m3-linear-indeterminate 2s infinite linear",
+      },
+      false: {
+        animation: "none",
+      }
+    }
+  },
+  defaultVariants: { indeterminate: false }
+});
 
 export class LinearProgress extends BaseElement {
   private _track: HTMLElement;
-  private _indicator: HTMLElement;
+  private _indicator!: HTMLElement;
 
   constructor() {
     super("div");
-    this.element.className = "m3-linear-progress";
-    this.element.style.width = "100%";
-    this.element.style.height = "4px";
-    this.element.style.position = "relative";
-    this.element.style.overflow = "hidden";
-    this.element.style.borderRadius = "2px";
-    this.element.style.backgroundColor = currentTheme.surfaceVariant;
+    this.element.className = "m3-linear-progress " + containerSva();
 
     this._track = document.createElement("div");
-    this._track.style.width = "100%";
-    this._track.style.height = "100%";
-    this._track.style.position = "absolute";
-    this._track.style.backgroundColor = currentTheme.surfaceVariant;
+    this._track.className = trackSva();
 
     this._indicator = document.createElement("div");
-    this._indicator.style.height = "100%";
-    this._indicator.style.position = "absolute";
-    this._indicator.style.backgroundColor = currentTheme.primary;
-    this._indicator.style.transition = "width 0.2s linear";
+    this._indicator.className = indicatorSva({ indeterminate: false });
     this._indicator.style.width = "0%";
 
     this.element.appendChild(this._track);
@@ -35,12 +65,11 @@ export class LinearProgress extends BaseElement {
 
   SetProgress(value: number | null): this {
     if (value === null) {
-      this._indicator.style.width = "50%";
-      this._indicator.style.animation =
-        "m3-linear-indeterminate 2s infinite linear";
+      this._indicator.className = indicatorSva({ indeterminate: true });
+      this._indicator.style.width = ""; // Use SVA width
       this.ensureAnimations();
     } else {
-      this._indicator.style.animation = "none";
+      this._indicator.className = indicatorSva({ indeterminate: false });
       this._indicator.style.width = `${Math.max(0, Math.min(100, value))}%`;
     }
     return this;

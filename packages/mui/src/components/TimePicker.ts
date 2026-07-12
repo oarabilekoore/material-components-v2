@@ -1,6 +1,7 @@
-import { BaseElement } from "../../../core/src/elements/BaseElement.ts";
+import { OverlayElement } from "../../../core/src/elements/Overlay.ts";
 import { LayoutElement } from "../../../core/src/elements/Layout.ts";
 import { sva } from "../../../core/src/utils/sva.ts";
+import { Signal, CreateSignal, Bind } from "../../../core/src/state/signals.ts";
 
 const timePickerSva = sva({
   base: {
@@ -81,22 +82,28 @@ const toggleBtnSva = sva({
   },
 });
 
-export class TimePicker extends BaseElement {
+const titleSva = sva({
+  base: {
+    fontSize: "12px",
+    fontWeight: "500",
+    alignSelf: "flex-start",
+    color: "var(--md-on-surface-variant)",
+  },
+});
+
+export class TimePicker extends OverlayElement {
   private hourField: HTMLInputElement;
   private minuteField: HTMLInputElement;
-  private amPm: "AM" | "PM" = "AM";
-  private onChangeCallback: ((time: string) => void) | null = null;
+  private amPmSignal: Signal<"AM" | "PM">;
+  public timeSignal: Signal<string>;
 
   constructor() {
-    super("div");
-    this.element.className = timePickerSva();
+    super("div", { scrim: true, dismissOnScrimClick: true, dismissOnEscape: true });
+    this.element.className = "m3-timepicker " + timePickerSva();
 
     const title = document.createElement("div");
     title.textContent = "Enter time";
-    title.style.fontSize = "12px";
-    title.style.fontWeight = "500";
-    title.style.alignSelf = "flex-start";
-    title.style.color = "var(--md-on-surface-variant)";
+    title.className = titleSva();
     this.element.appendChild(title);
 
     const inputRow = document.createElement("div");
@@ -133,19 +140,17 @@ export class TimePicker extends BaseElement {
     pmBtn.className = toggleBtnSva({ active: false });
     pmBtn.textContent = "PM";
 
-    amBtn.addEventListener("click", () => {
-      this.amPm = "AM";
-      amBtn.className = toggleBtnSva({ active: true });
-      pmBtn.className = toggleBtnSva({ active: false });
+    this.amPmSignal = CreateSignal<"AM" | "PM">("AM");
+    this.timeSignal = CreateSignal("09:30 AM");
+
+    Bind(this.amPmSignal, (amPm) => {
+      amBtn.className = toggleBtnSva({ active: amPm === "AM" });
+      pmBtn.className = toggleBtnSva({ active: amPm === "PM" });
       this.notifyChange();
     });
 
-    pmBtn.addEventListener("click", () => {
-      this.amPm = "PM";
-      amBtn.className = toggleBtnSva({ active: false });
-      pmBtn.className = toggleBtnSva({ active: true });
-      this.notifyChange();
-    });
+    amBtn.addEventListener("click", () => this.amPmSignal.Set("AM"));
+    pmBtn.addEventListener("click", () => this.amPmSignal.Set("PM"));
 
     toggle.appendChild(amBtn);
     toggle.appendChild(pmBtn);
@@ -154,42 +159,50 @@ export class TimePicker extends BaseElement {
 
     this.hourField.addEventListener("input", () => this.validateHour());
     this.minuteField.addEventListener("input", () => this.validateMinute());
+
+    const handleEnter = (e: KeyboardEvent) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        this.Close();
+      }
+    };
+    this.hourField.addEventListener("keydown", handleEnter);
+    this.minuteField.addEventListener("keydown", handleEnter);
   }
 
   private validateHour() {
     let val = this.hourField.value.replace(/\D/g, "");
-    if (val) {
+    if (val !== "") {
       let num = parseInt(val);
-      if (num > 12) num = 12;
-      if (num < 1) num = 1;
-      this.hourField.value = String(num).padStart(2, "0");
+      if (num > 12) val = "12";
+      if (num === 0) val = "1";
     }
+    this.hourField.value = val;
     this.notifyChange();
   }
 
   private validateMinute() {
     let val = this.minuteField.value.replace(/\D/g, "");
-    if (val) {
+    if (val !== "") {
       let num = parseInt(val);
-      if (num > 59) num = 59;
-      this.minuteField.value = String(num).padStart(2, "0");
+      if (num > 59) val = "59";
     }
+    this.minuteField.value = val;
     this.notifyChange();
   }
 
   private notifyChange() {
-    if (this.onChangeCallback) {
-      this.onChangeCallback(`${this.hourField.value}:${this.minuteField.value} ${this.amPm}`);
-    }
+    const val = `${this.hourField.value}:${this.minuteField.value} ${this.amPmSignal.Get()}`;
+    this.timeSignal.Set(val);
   }
 
   SetOnChange(callback: (time: string) => void): this {
-    this.onChangeCallback = callback;
+    this.timeSignal.Subscribe(callback);
     return this;
   }
 
   GetTime(): string {
-    return `${this.hourField.value}:${this.minuteField.value} ${this.amPm}`;
+    return this.timeSignal.Get();
   }
 
   override GetType(): string {

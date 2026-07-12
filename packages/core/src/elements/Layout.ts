@@ -75,13 +75,16 @@ export class LayoutElement extends BaseElement {
   RemoveChild(child: BaseElement) {
     const idx = this.children.indexOf(child);
     if (idx === -1) return this;
-    this.element.removeChild(child.element);
+    if (child.element.parentElement === this.element) {
+      this.element.removeChild(child.element);
+    }
     this.children.splice(idx, 1);
     return this;
   }
 
   DestroyChild(child: BaseElement) {
     this.RemoveChild(child);
+    child.Dispose();
     return this;
   }
 
@@ -101,9 +104,14 @@ export class LayoutElement extends BaseElement {
   }
 
   Clear() {
-    this.children.forEach(c => this.element.removeChild(c.element));
+    this.children.forEach(c => c.Dispose());
     this.children = [];
     return this;
+  }
+
+  override Dispose() {
+    this.Clear();
+    super.Dispose();
   }
 
   GetChildOrder(child: BaseElement): number {

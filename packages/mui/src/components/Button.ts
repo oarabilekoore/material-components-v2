@@ -1,3 +1,4 @@
+import { Icon, SvgIconNode, Icons } from "../icons/Icon.ts";
 import { BaseElement } from "../../../core/src/elements/BaseElement.ts";
 import { LayoutElement } from "../../../core/src/elements/Layout.ts";
 import { ButtonVariant } from "../theme.ts";
@@ -77,17 +78,15 @@ export class Button extends BaseElement {
   constructor(
     text: string,
     variant: ButtonVariant = "filled",
-    icon?: string,
+    iconNodes?: SvgIconNode[],
   ) {
     super("button");
     this._variant = variant;
     
-    if (icon) {
-      const iconSpan = document.createElement("span");
-      iconSpan.className = "material-icons";
-      iconSpan.textContent = icon;
-      iconSpan.style.fontSize = "1.125rem"; // 18px typical for buttons
-      this.element.appendChild(iconSpan);
+    if (iconNodes) {
+      const iconSpan = new Icon(iconNodes);
+      iconSpan.SetIconSize(18);
+      this.element.appendChild(iconSpan.element);
     }
 
     const textSpan = document.createElement("span");
@@ -116,6 +115,12 @@ export class Button extends BaseElement {
     return this._variant;
   }
 
+  SetText(text: string): this {
+    const textSpan = this.element.querySelector('span');
+    if (textSpan) textSpan.textContent = text;
+    return this;
+  }
+
   SetOnClick(callback: (e: MouseEvent) => void): this {
     this.element.addEventListener("click", callback);
     return this;
@@ -129,9 +134,9 @@ export class Button extends BaseElement {
 function CreateButton(
   text: string,
   variant: ButtonVariant = "filled",
-  options?: string,
+  iconNodes?: SvgIconNode[],
 ): Button {
-  return new Button(text, variant, options);
+  return new Button(text, variant, iconNodes);
 }
 
 /**
@@ -147,9 +152,9 @@ export function AddButton(
   parent: LayoutElement,
   text: string,
   variant: ButtonVariant = "filled",
-  options?: string,
+  iconNodes?: SvgIconNode[],
 ): Button {
-  const btn = CreateButton(text, variant, options);
+  const btn = CreateButton(text, variant, iconNodes);
   parent.AddChild(btn);
   return btn;
 }

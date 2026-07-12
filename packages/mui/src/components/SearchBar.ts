@@ -1,3 +1,4 @@
+import { Icon, SvgIconNode, Icons } from "../icons/Icon.ts";
 import { BaseElement } from "../../../core/src/elements/BaseElement.ts";
 import { LayoutElement } from "../../../core/src/elements/Layout.ts";
 import { sva } from "../../../core/src/utils/sva.ts";
@@ -27,13 +28,26 @@ const barSva = sva({
     transition: "box-shadow 0.2s ease, background-color 0.2s ease",
   },
   variants: {
-    focused: {
-      true: {
-        boxShadow: "0 3px 6px rgba(0,0,0,0.20)", // elevation level 3
-        backgroundColor: "var(--md-surface-container, var(--md-surface))",
+    variant: {
+      filled: {
+        backgroundColor: "var(--md-surface-container-high, var(--md-surface))",
+        boxShadow: "0 1px 3px rgba(0,0,0,0.15)",
+        "&:focus-within": {
+          boxShadow: "0 3px 6px rgba(0,0,0,0.20)",
+          backgroundColor: "var(--md-surface-container, var(--md-surface))",
+        }
       },
-      false: {}
+      outlined: {
+        backgroundColor: "transparent",
+        border: "1px solid var(--md-outline)",
+        "&:focus-within": {
+          border: "2px solid var(--md-primary)",
+        }
+      }
     }
+  },
+  defaultVariants: {
+    variant: "filled"
   }
 });
 
@@ -77,30 +91,62 @@ const suggestionItemSva = sva({
     color: "var(--md-on-surface)",
     fontSize: "14px",
     transition: "background-color 0.1s ease",
+    "&:hover": {
+      backgroundColor: "var(--md-surface-variant)",
+    },
   },
+});
+
+const clearIconSva = sva({
+  base: {
+    color: "var(--md-on-surface-variant)",
+    cursor: "pointer",
+    padding: "4px",
+    borderRadius: "50%",
+  },
+  variants: {
+    visible: {
+      true: { display: "block" },
+      false: { display: "none" }
+    }
+  },
+  defaultVariants: {
+    visible: false,
+  }
+});
+
+const iconSva = sva({
+  base: {
+    color: "var(--md-on-surface-variant)",
+  }
 });
 
 export class SearchBar extends BaseElement {
   private inputEl: HTMLInputElement;
   private popupEl: HTMLDivElement;
   private barEl: HTMLDivElement;
-  private searchIconEl: HTMLSpanElement;
-  private clearIconEl: HTMLSpanElement;
+  private searchIconEl?: Icon;
+  private clearIconEl: Icon;
   private suggestions: string[] = [];
   private onSearchCallback: ((query: string) => void) | null = null;
 
-  constructor(placeholder = "Search...") {
+  constructor(
+    placeholder = "Search...",
+    variant: "filled" | "outlined" = "filled",
+    leadingIconNodes: SvgIconNode[] | null = Icons.search
+  ) {
     super("div");
     this.element.className = containerSva();
 
     this.barEl = document.createElement("div");
-    this.barEl.className = barSva({ focused: false });
+    this.barEl.className = barSva({ variant });
 
-    this.searchIconEl = document.createElement("span");
-    this.searchIconEl.className = "material-icons";
-    this.searchIconEl.textContent = "search";
-    this.searchIconEl.style.color = "var(--md-on-surface-variant)";
-    this.barEl.appendChild(this.searchIconEl);
+    if (leadingIconNodes) {
+      this.searchIconEl = new Icon(leadingIconNodes);
+      this.searchIconEl.SetIconSize(24);
+      this.searchIconEl.element.className = iconSva();
+      this.barEl.appendChild(this.searchIconEl.element);
+    }
 
     this.inputEl = document.createElement("input");
     this.inputEl.className = inputSva();
@@ -108,23 +154,18 @@ export class SearchBar extends BaseElement {
     this.inputEl.type = "text";
     this.barEl.appendChild(this.inputEl);
 
-    this.clearIconEl = document.createElement("span");
-    this.clearIconEl.className = "material-icons";
-    this.clearIconEl.textContent = "close";
-    this.clearIconEl.style.color = "var(--md-on-surface-variant)";
-    this.clearIconEl.style.cursor = "pointer";
-    this.clearIconEl.style.display = "none";
-    this.clearIconEl.style.padding = "4px";
-    this.clearIconEl.style.borderRadius = "50%";
+    this.clearIconEl = new Icon(Icons.close);
+    this.clearIconEl.SetIconSize(24);
+    this.clearIconEl.element.className = clearIconSva({ visible: false });
     
-    this.clearIconEl.addEventListener("click", () => {
+    this.clearIconEl.element.addEventListener("click", () => {
       this.inputEl.value = "";
-      this.clearIconEl.style.display = "none";
+      this.clearIconEl.element.className = clearIconSva({ visible: false });
       this.hideSuggestions();
       this.notifySearch("");
       this.inputEl.focus();
     });
-    this.barEl.appendChild(this.clearIconEl);
+    this.barEl.appendChild(this.clearIconEl.element);
 
     this.element.appendChild(this.barEl);
 
@@ -133,19 +174,18 @@ export class SearchBar extends BaseElement {
     this.element.appendChild(this.popupEl);
 
     this.inputEl.addEventListener("input", () => {
-      this.clearIconEl.style.display = this.inputEl.value ? "block" : "none";
+      this.clearIconEl.element.className = clearIconSva({ visible: !!this.inputEl.value });
       this.filterSuggestions();
     });
 
     this.inputEl.addEventListener("focus", () => {
-      this.barEl.className = barSva({ focused: true });
       if (this.suggestions.length > 0 && this.inputEl.value) {
         this.filterSuggestions();
       }
     });
 
     this.inputEl.addEventListener("blur", () => {
-      this.barEl.className = barSva({ focused: false });
+      // Focus within handles styling
     });
 
     if (typeof document !== "undefined") {
@@ -175,11 +215,10 @@ export class SearchBar extends BaseElement {
         const item = document.createElement("div");
         item.className = suggestionItemSva();
         
-        const historyIcon = document.createElement("span");
-        historyIcon.className = "material-icons";
-        historyIcon.textContent = "history";
-        historyIcon.style.color = "var(--md-on-surface-variant)";
-        item.appendChild(historyIcon);
+        const historyIcon = new Icon(Icons.menu);
+        historyIcon.SetIconSize(24);
+        historyIcon.element.className = iconSva();
+        item.appendChild(historyIcon.element);
 
         const txt = document.createElement("span");
         txt.textContent = s;
@@ -187,17 +226,12 @@ export class SearchBar extends BaseElement {
 
         item.addEventListener("click", () => {
           this.inputEl.value = s;
-          this.clearIconEl.style.display = "block";
+          this.clearIconEl.element.className = clearIconSva({ visible: true });
           this.hideSuggestions();
           this.notifySearch(s);
         });
 
-        item.addEventListener("mouseenter", () => {
-          item.style.backgroundColor = "var(--md-surface-variant)";
-        });
-        item.addEventListener("mouseleave", () => {
-          item.style.backgroundColor = "transparent";
-        });
+
 
         attachRipple(item);
         this.popupEl.appendChild(item);
@@ -234,19 +268,30 @@ export class SearchBar extends BaseElement {
   }
 }
 
-function CreateSearchBar(placeholder = "Search..."): SearchBar {
-  return new SearchBar(placeholder);
+function CreateSearchBar(
+  placeholder = "Search...",
+  variant: "filled" | "outlined" = "filled",
+  leadingIconNodes: SvgIconNode[] | null = Icons.search
+): SearchBar {
+  return new SearchBar(placeholder, variant, leadingIconNodes);
 }
 
 /**
  * AddSearchBar function.
  * @param {LayoutElement} parent - The parent parameter
- * @param {any} placeholder - The placeholder parameter
+ * @param {string} placeholder - The placeholder parameter
+ * @param {"filled" | "outlined"} variant - The variant parameter
+ * @param {SvgIconNode[] | null} leadingIconNodes - The icon nodes parameter
  * @returns {SearchBar}
  *
  */
-export function AddSearchBar(parent: LayoutElement, placeholder = "Search..."): SearchBar {
-  const bar = CreateSearchBar(placeholder);
+export function AddSearchBar(
+  parent: LayoutElement,
+  placeholder = "Search...",
+  variant: "filled" | "outlined" = "filled",
+  leadingIconNodes: SvgIconNode[] | null = Icons.search
+): SearchBar {
+  const bar = CreateSearchBar(placeholder, variant, leadingIconNodes);
   parent.AddChild(bar);
   return bar;
 }

@@ -1,8 +1,62 @@
+import { Icon, SvgIconNode, Icons } from "../icons/Icon.ts";
 import { BaseElement } from "../../../core/src/elements/BaseElement.ts";
 import { LayoutElement } from "../../../core/src/elements/Layout.ts";
 import { currentTheme } from "../theme.ts";
 
 import { attachRipple } from "../../../core/src/utils/ripple.ts";
+import { sva } from "../../../core/src/utils/sva.ts";
+
+const containerSva = sva({
+  base: {
+    display: "inline-flex",
+    border: "1px solid var(--md-outline)",
+    borderRadius: "100px", // Full radius
+    overflow: "hidden",
+    fontFamily: "var(--md-font-family, Roboto, sans-serif)",
+  },
+});
+
+const segmentBtnSva = sva({
+  base: {
+    flex: "1",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: "8px",
+    padding: "10px 16px",
+    backgroundColor: "transparent",
+    color: "var(--md-on-surface)",
+    border: "none",
+    cursor: "pointer",
+    fontSize: "14px",
+    fontWeight: "500",
+    transition: "background-color 0.2s ease",
+  },
+  variants: {
+    active: {
+      true: {
+        backgroundColor: "var(--md-secondary-container)",
+        color: "var(--md-on-secondary-container)",
+      },
+      false: {
+        backgroundColor: "transparent",
+        color: "var(--md-on-surface)",
+      },
+    },
+    hasBorder: {
+      true: {
+        borderRight: "1px solid var(--md-outline)",
+      },
+      false: {
+        borderRight: "none",
+      },
+    },
+  },
+  defaultVariants: {
+    active: false,
+    hasBorder: false,
+  },
+});
 
 export class SegmentedButton extends BaseElement {
   private _buttons: HTMLButtonElement[] = [];
@@ -10,57 +64,36 @@ export class SegmentedButton extends BaseElement {
   private _onSelect: ((value: string) => void) | null = null;
   private _multiSelect: boolean = false;
   private _selectedIndices: Set<number> = new Set();
-  private _defaultIcons: (string | undefined)[] = [];
-  private _icons: HTMLSpanElement[] = [];
+  private _defaultIcons: (SvgIconNode[] | undefined)[] = [];
+  private _icons: Icon[] = [];
 
   constructor(multiSelect: boolean = false) {
     super("div");
     this._multiSelect = multiSelect;
-    this.element.className = "m3-segmented-button";
-    this.element.style.display = "inline-flex";
-    this.element.style.border = `1px solid ${currentTheme.outline}`;
-    this.element.style.borderRadius = `${currentTheme.shapeCornerFull}px`;
-    this.element.style.overflow = "hidden";
-    this.element.style.fontFamily = currentTheme.fontFamily;
+    this.element.className = "m3-segmented-button " + containerSva();
   }
 
-  AddSegment(label: string, icon?: string): this {
+  AddSegment(label: string, iconNodes?: SvgIconNode[]): this {
     const btn = document.createElement("button");
     const index = this._buttons.length;
     btn.dataset.label = label;
-    this._defaultIcons.push(icon);
+    this._defaultIcons.push(iconNodes);
 
-    btn.style.flex = "1";
-    btn.style.display = "flex";
-    btn.style.alignItems = "center";
-    btn.style.justifyContent = "center";
-    btn.style.gap = "8px";
-    btn.style.padding = "10px 16px";
-    btn.style.backgroundColor = "transparent";
-    btn.style.color = currentTheme.onSurface;
-    btn.style.border = "none";
-    btn.style.borderRight =
-      index > 0 ? `1px solid ${currentTheme.outline}` : "none";
-    btn.style.cursor = "pointer";
-    btn.style.fontSize = "14px";
-    btn.style.fontWeight = "500";
-    btn.style.transition = "background-color 0.2s ease";
+    btn.className = segmentBtnSva({ active: false, hasBorder: index > 0 });
 
     if (index > 0) {
-      this._buttons[index - 1].style.borderRight =
-        `1px solid ${currentTheme.outline}`;
+      this._buttons[index - 1].className = segmentBtnSva({ active: this._selectedIndices.has(index - 1) || this._selectedIndex === index - 1, hasBorder: true });
     }
 
-    const iconSpan = document.createElement("span");
-    iconSpan.className = "material-icons";
-    iconSpan.style.fontSize = "18px";
-    if (icon) {
-      iconSpan.textContent = icon;
+    const iconSpan = new Icon(iconNodes || Icons.check);
+    iconSpan.SetIconSize(18);
+    if (iconNodes) {
+      iconSpan.SetIcon(iconNodes);
     } else {
-      iconSpan.style.display = "none";
+      iconSpan.element.style.display = "none";
     }
     this._icons.push(iconSpan);
-    btn.appendChild(iconSpan);
+    btn.appendChild(iconSpan.element);
 
     const labelSpan = document.createElement("span");
     labelSpan.textContent = label;
@@ -111,18 +144,16 @@ export class SegmentedButton extends BaseElement {
     const defaultIcon = this._defaultIcons[index];
 
     if (active) {
-      btn.style.backgroundColor = currentTheme.secondaryContainer;
-      btn.style.color = currentTheme.onSecondaryContainer;
-      iconSpan.textContent = "check";
-      iconSpan.style.display = "inline-flex";
+      btn.className = segmentBtnSva({ active: true, hasBorder: index < this._buttons.length - 1 });
+      iconSpan.SetIcon(Icons.check);
+      iconSpan.element.style.display = "inline-flex";
     } else {
-      btn.style.backgroundColor = "transparent";
-      btn.style.color = currentTheme.onSurface;
+      btn.className = segmentBtnSva({ active: false, hasBorder: index < this._buttons.length - 1 });
       if (defaultIcon) {
-        iconSpan.textContent = defaultIcon;
-        iconSpan.style.display = "inline-flex";
+        iconSpan.SetIcon(defaultIcon);
+        iconSpan.element.style.display = "inline-flex";
       } else {
-        iconSpan.style.display = "none";
+        iconSpan.element.style.display = "none";
       }
     }
   }

@@ -1,4 +1,5 @@
-import { InteractiveElement } from "./interactive_element.ts";
+import { InteractiveElement } from "./InteractiveElement.ts";
+import { Signal, CreateSignal, Bind } from "../state/signals.ts";
 
 export type ToggleInputType = "checkbox" | "radio";
 
@@ -13,6 +14,7 @@ export type ToggleInputType = "checkbox" | "radio";
  */
 export class ToggleInputElement extends InteractiveElement {
   protected input: HTMLInputElement;
+  public checkedSignal: Signal<boolean>;
 
   constructor(type: ToggleInputType, tag: "label" | "div" = "label") {
     super(tag);
@@ -23,10 +25,17 @@ export class ToggleInputElement extends InteractiveElement {
       "position:absolute; opacity:0; width:0; height:0; margin:0; pointer-events:none;";
     this.element.insertBefore(this.input, this.element.firstChild);
 
+    this.checkedSignal = CreateSignal(false);
+    Bind(this.checkedSignal, (checked) => {
+      this.input.checked = checked;
+      this.input.indeterminate = false;
+      this.OnToggleChange(checked);
+    });
+
     this.WireFocusEvents(this.input);
-    this.input.addEventListener("change", () =>
-      this.OnToggleChange(this.input.checked),
-    );
+    this.input.addEventListener("change", () => {
+      this.checkedSignal.Set(this.input.checked);
+    });
   }
 
   /** Called whenever the checked state changes, so subclasses can repaint
@@ -34,9 +43,7 @@ export class ToggleInputElement extends InteractiveElement {
   protected OnToggleChange(_checked: boolean): void {}
 
   SetChecked(checked: boolean): this {
-    this.input.checked = checked;
-    this.input.indeterminate = false;
-    this.OnToggleChange(checked);
+    this.checkedSignal.Set(checked);
     return this;
   }
 
@@ -47,7 +54,7 @@ export class ToggleInputElement extends InteractiveElement {
   }
 
   IsChecked(): boolean {
-    return this.input.checked;
+    return this.checkedSignal.Get();
   }
 
   IsIndeterminate(): boolean {
@@ -69,9 +76,7 @@ export class ToggleInputElement extends InteractiveElement {
   }
 
   SetOnChange(callback: (checked: boolean, value: string) => void): this {
-    this.input.addEventListener("change", () =>
-      callback(this.input.checked, this.input.value),
-    );
+    this.checkedSignal.Subscribe((checked) => callback(checked, this.input.value));
     return this;
   }
 

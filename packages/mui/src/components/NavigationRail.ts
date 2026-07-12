@@ -1,7 +1,38 @@
+import { Icon, SvgIconNode, Icons } from "../icons/Icon.ts";
 import { BaseElement } from "../../../core/src/elements/BaseElement.ts";
 import { LayoutElement } from "../../../core/src/elements/Layout.ts";
 import { sva } from "../../../core/src/utils/sva.ts";
 import { attachRipple } from "../../../core/src/utils/ripple.ts";
+
+const fabContainerSva = sva({
+  base: {
+    marginBottom: "32px",
+    display: "flex",
+    justifyContent: "center",
+    width: "100%",
+  },
+});
+
+const itemsContainerSva = sva({
+  base: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    width: "100%",
+    flex: "1",
+  },
+});
+
+const bottomContainerSva = sva({
+  base: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    width: "100%",
+    marginBottom: "24px",
+    gap: "16px",
+  },
+});
 
 const railSva = sva({
   base: {
@@ -88,18 +119,21 @@ const labelSva = sva({
 
 class NavigationRailItem extends BaseElement {
   private _iconContainer: HTMLDivElement;
+  private _icon?: Icon;
   private _labelEl: HTMLSpanElement;
   private _value: string;
   private _active: boolean = false;
 
-  constructor(icon: string, label: string, value: string) {
+  constructor(iconNodes: SvgIconNode[], label: string, value: string) {
     super("div");
     this._value = value;
     this.element.className = itemSva();
 
     this._iconContainer = document.createElement("div");
-    this._iconContainer.textContent = icon;
-    this._iconContainer.className = "material-icons " + iconContainerSva({ active: false });
+    
+    this._iconContainer.className = iconContainerSva({ active: false });
+    this._icon = new Icon(iconNodes);
+    this._iconContainer.appendChild(this._icon.element);
 
     this._labelEl = document.createElement("span");
     this._labelEl.textContent = label;
@@ -113,7 +147,7 @@ class NavigationRailItem extends BaseElement {
 
   SetActive(active: boolean): void {
     this._active = active;
-    this._iconContainer.className = "material-icons " + iconContainerSva({ active: this._active });
+    this._iconContainer.className = iconContainerSva({ active: this._active });
     this._labelEl.className = labelSva({ active: this._active });
   }
 
@@ -127,6 +161,7 @@ export class NavigationRail extends BaseElement {
   private _selectedIndex: number = 0;
   private _onSelect: ((index: number, value: string) => void) | null = null;
   private _fabContainer: HTMLDivElement;
+  private _fab?: BaseElement;
   private _bottomContainer: HTMLDivElement;
   private _itemsContainer: HTMLDivElement;
 
@@ -135,38 +170,29 @@ export class NavigationRail extends BaseElement {
     this.element.className = railSva();
 
     this._fabContainer = document.createElement("div");
-    this._fabContainer.style.marginBottom = "32px";
-    this._fabContainer.style.display = "flex";
-    this._fabContainer.style.justifyContent = "center";
-    this._fabContainer.style.width = "100%";
+    this._fabContainer.className = fabContainerSva();
     this.element.appendChild(this._fabContainer);
 
     this._itemsContainer = document.createElement("div");
-    this._itemsContainer.style.display = "flex";
-    this._itemsContainer.style.flexDirection = "column";
-    this._itemsContainer.style.alignItems = "center";
-    this._itemsContainer.style.width = "100%";
-    this._itemsContainer.style.flex = "1";
+    this._itemsContainer.className = itemsContainerSva();
     this.element.appendChild(this._itemsContainer);
 
     this._bottomContainer = document.createElement("div");
-    this._bottomContainer.style.display = "flex";
-    this._bottomContainer.style.flexDirection = "column";
-    this._bottomContainer.style.alignItems = "center";
-    this._bottomContainer.style.width = "100%";
-    this._bottomContainer.style.marginBottom = "24px";
-    this._bottomContainer.style.gap = "16px";
+    this._bottomContainer.className = bottomContainerSva();
     this.element.appendChild(this._bottomContainer);
   }
 
   SetFab(fab: BaseElement): this {
-    this._fabContainer.innerHTML = "";
+    if (this._fab) {
+      this._fab.Dispose();
+    }
+    this._fab = fab;
     this._fabContainer.appendChild(fab.element);
     return this;
   }
 
-  AddItem(icon: string, label: string, value: string): this {
-    const item = new NavigationRailItem(icon, label, value);
+  AddItem(iconNodes: SvgIconNode[], label: string, value: string): this {
+    const item = new NavigationRailItem(iconNodes, label, value);
     const index = this._items.length;
     
     item.element.addEventListener("click", () => this.Select(index));

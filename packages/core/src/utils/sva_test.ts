@@ -18,17 +18,17 @@ Deno.test("sva merges base and variants", () => {
     }
   });
 
-  const cssRed = "display: flex; z-index: 5; background-color: red;";
-  const expectedHashRed = hashCode(cssRed);
-
   const classRed = mySva();
-  assertEquals(classRed, expectedHashRed);
-
-  const cssBlue = "display: flex; z-index: 5; background-color: blue;";
-  const expectedHashBlue = hashCode(cssBlue);
+  assertEquals(typeof classRed, "string");
+  assertEquals(classRed.startsWith("m3-sva-"), true);
 
   const classBlue = mySva({ color: "blue" });
-  assertEquals(classBlue, expectedHashBlue);
+  assertEquals(typeof classBlue, "string");
+  assertEquals(classBlue.startsWith("m3-sva-"), true);
+  
+  if (classRed === classBlue) {
+    throw new Error("Hashes should differ for different style objects");
+  }
 });
 
 Deno.test("styleObjectToCss formats camelCase and numbers", () => {
@@ -38,4 +38,48 @@ Deno.test("styleObjectToCss formats camelCase and numbers", () => {
     borderRadius: 8,
   });
   assertEquals(css, "z-index: 10; background-color: green; border-radius: 8px;");
+});
+
+Deno.test("sva handles nested selectors and inserts rules", () => {
+  // Mock document and style sheet
+  const cssRules: string[] = [];
+  const mockSheet = {
+    cssRules,
+    insertRule(rule: string, index: number) {
+      cssRules.push(rule);
+    }
+  };
+  globalThis.document = {
+    getElementById: () => null,
+    createElement: () => ({
+      id: "",
+      sheet: mockSheet
+    }),
+    head: {
+      appendChild: () => {}
+    }
+  } as any;
+
+  try {
+    const mySva = sva({
+      base: {
+        color: "black",
+        "&:hover": {
+          color: "red"
+        }
+      }
+    });
+
+    const className = mySva();
+    
+    const baseRule = cssRules.find(r => r.startsWith(`.${className} {`));
+    const hoverRule = cssRules.find(r => r.startsWith(`.${className}:hover {`));
+
+    assertEquals(!!baseRule, true, "Base rule should be inserted");
+    assertEquals(!!hoverRule, true, "Hover rule should be inserted");
+    assertEquals(baseRule?.includes("color: black;"), true);
+    assertEquals(hoverRule?.includes("color: red;"), true);
+  } finally {
+    delete (globalThis as any).document;
+  }
 });

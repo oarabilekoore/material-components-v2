@@ -2,6 +2,7 @@ import { BaseElement } from "../../../core/src/elements/BaseElement.ts";
 import { LayoutElement } from "../../../core/src/elements/Layout.ts";
 import { sva } from "../../../core/src/utils/sva.ts";
 import { attachRipple } from "../../../core/src/utils/ripple.ts";
+import { Signal, CreateSignal, Bind } from "../../../core/src/state/signals.ts";
 
 const accordionContainerSva = sva({
   base: {
@@ -105,7 +106,7 @@ export class Accordion extends BaseElement {
   private _contentContainer: HTMLDivElement;
   private _contentInner: HTMLDivElement;
   private _contentPadding: HTMLDivElement;
-  private _expanded: boolean = false;
+  private _expanded: Signal<boolean>;
 
   constructor(title: string) {
     super("div");
@@ -130,6 +131,8 @@ export class Accordion extends BaseElement {
 
     this.element.appendChild(this._header);
 
+    this._expanded = CreateSignal(false);
+
     this._contentContainer = document.createElement("div");
     this._contentContainer.className = contentSva({ expanded: false });
     
@@ -142,6 +145,11 @@ export class Accordion extends BaseElement {
     this._contentInner.appendChild(this._contentPadding);
     this._contentContainer.appendChild(this._contentInner);
     this.element.appendChild(this._contentContainer);
+
+    Bind(this._expanded, (expanded) => {
+      this._iconSpan.className = iconSva({ expanded });
+      this._contentContainer.className = contentSva({ expanded });
+    });
   }
 
   SetTitle(title: string): this {
@@ -160,34 +168,22 @@ export class Accordion extends BaseElement {
   }
 
   Expand(): this {
-    if (!this._expanded) {
-      this._expanded = true;
-      this._updateState();
-    }
+    this._expanded.Set(true);
     return this;
   }
 
   Collapse(): this {
-    if (this._expanded) {
-      this._expanded = false;
-      this._updateState();
-    }
+    this._expanded.Set(false);
     return this;
   }
 
   Toggle(): this {
-    this._expanded = !this._expanded;
-    this._updateState();
+    this._expanded.Set(!this._expanded.Get());
     return this;
   }
   
   IsExpanded(): boolean {
-    return this._expanded;
-  }
-
-  private _updateState() {
-    this._iconSpan.className = iconSva({ expanded: this._expanded });
-    this._contentContainer.className = contentSva({ expanded: this._expanded });
+    return this._expanded.Get();
   }
 
   override GetType(): string {

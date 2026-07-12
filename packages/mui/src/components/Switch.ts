@@ -1,3 +1,4 @@
+import { Icon, SvgIconNode, Icons } from "../icons/Icon.ts";
 import { BaseElement } from "../../../core/src/elements/BaseElement.ts";
 import { LayoutElement } from "../../../core/src/elements/Layout.ts";
 import { sva } from "../../../core/src/utils/sva.ts";
@@ -22,9 +23,22 @@ const containerSva = sva({
         outline: "none",
       },
     },
+    disabled: {
+      true: {
+        opacity: "0.38",
+        cursor: "not-allowed",
+        pointerEvents: "none",
+      },
+      false: {
+        opacity: "1",
+        cursor: "pointer",
+        pointerEvents: "auto",
+      },
+    },
   },
   defaultVariants: {
     focused: false,
+    disabled: false,
   },
 });
 
@@ -135,14 +149,13 @@ export class Switch extends BaseElement {
   private input: HTMLInputElement;
   private track: HTMLDivElement;
   private thumb: HTMLDivElement;
-  private iconSpan: HTMLSpanElement;
+  private iconSpan: Icon;
   private _focused = false;
-  private _onIcon?: string;
-  private _offIcon?: string;
+  private _onIcon?: SvgIconNode[];
+  private _offIcon?: SvgIconNode[];
 
   constructor() {
     super("label");
-    this.updateContainerStyle();
 
     this.input = document.createElement("input");
     this.input.type = "checkbox";
@@ -151,10 +164,10 @@ export class Switch extends BaseElement {
     this.track = document.createElement("div");
     this.thumb = document.createElement("div");
     
-    this.iconSpan = document.createElement("span");
-    this.iconSpan.className = iconSva({ checked: false });
-    this.iconSpan.style.display = "none";
-    this.thumb.appendChild(this.iconSpan);
+    this.iconSpan = new Icon(Icons.check);
+    this.iconSpan.element.className = iconSva({ checked: false });
+    this.iconSpan.element.style.display = "none";
+    this.thumb.appendChild(this.iconSpan.element);
 
     this.element.appendChild(this.input);
     this.element.appendChild(this.track);
@@ -174,10 +187,11 @@ export class Switch extends BaseElement {
     });
 
     this.updateState(false);
+    this.updateContainerStyle();
   }
 
   private updateContainerStyle() {
-    this.element.className = "m3-switch " + containerSva({ focused: this._focused });
+    this.element.className = "m3-switch " + containerSva({ focused: this._focused, disabled: this.input.disabled });
   }
 
   private updateState(checked: boolean): void {
@@ -186,15 +200,16 @@ export class Switch extends BaseElement {
     this.thumb.className = thumbSva({ checked, hasIcon: !!this._onIcon || !!this._offIcon });
     
     if (hasIcon) {
-      this.iconSpan.style.display = "block";
-      this.iconSpan.textContent = (checked ? this._onIcon : this._offIcon) || "";
-      this.iconSpan.className = iconSva({ checked });
+      this.iconSpan.element.style.display = "block";
+      const iconToSet = checked ? this._onIcon : this._offIcon;
+      if (iconToSet) { this.iconSpan.SetIcon(iconToSet); }
+      this.iconSpan.element.className = iconSva({ checked });
     } else {
-      this.iconSpan.style.display = "none";
+      this.iconSpan.element.style.display = "none";
     }
   }
 
-  SetIcons(onIcon: string, offIcon?: string): this {
+  SetIcons(onIcon: SvgIconNode[], offIcon?: SvgIconNode[]): this {
     this._onIcon = onIcon;
     this._offIcon = offIcon;
     this.updateState(this.input.checked);
@@ -213,9 +228,7 @@ export class Switch extends BaseElement {
 
   override SetEnabled(enabled: boolean): this {
     this.input.disabled = !enabled;
-    this.element.style.opacity = enabled ? "1" : "0.38";
-    this.element.style.cursor = enabled ? "pointer" : "not-allowed";
-    this.element.style.pointerEvents = enabled ? "auto" : "none";
+    this.updateContainerStyle();
     return this;
   }
 

@@ -9,7 +9,6 @@ import { SpinnerElement } from "./Spinner.ts";
 import { TextEditElement } from "./TextEdit.ts";
 import { ListElement } from "./List.ts";
 import { ScrollerElement } from "./Scroller.ts";
-import { WebViewElement } from "./WebView.ts";
 import { VideoViewElement } from "./Video.ts";
 type SizeOptions = { px?: boolean };
 
@@ -302,31 +301,6 @@ export function AddScroller(
   const scroller = CreateScroller(width, height, options);
   parent.AddChild(scroller);
   return scroller;
-}
-/** Creates a WebView. */
-export function CreateWebView(
-  url = "",
-  width = -1,
-  height = -1,
-  options?: SizeOptions,
-): WebViewElement {
-  const web = new WebViewElement();
-  if (url) web.LoadUrl(url);
-  if (width !== -1 || height !== -1) web.SetSize(width, height, options);
-  return web;
-}
-
-/** Creates and adds a WebView to a Layout. */
-export function AddWebView(
-  parent: LayoutElement,
-  url = "",
-  width = -1,
-  height = -1,
-  options?: SizeOptions,
-): WebViewElement {
-  const web = CreateWebView(url, width, height, options);
-  parent.AddChild(web);
-  return web;
 }
 
 /** Creates a VideoView. */

@@ -1,7 +1,9 @@
+import { Icon, SvgIconNode, Icons } from "../icons/Icon.ts";
 import { BaseElement } from "../../../core/src/elements/BaseElement.ts";
 import { LayoutElement } from "../../../core/src/elements/Layout.ts";
 import { TextFieldVariant } from "../theme.ts";
 import { sva } from "../../../core/src/utils/sva.ts";
+import { Signal, CreateSignal, Bind } from "../../../core/src/state/signals.ts";
 
 const textFieldSva = sva({
   base: {
@@ -89,7 +91,6 @@ const fieldWrapSva = sva({
 const labelSva = sva({
   base: {
     position: "absolute",
-    left: "16px",
     color: "var(--md-on-surface-variant)",
     transition: "all 0.15s cubic-bezier(0.2, 0, 0, 1)",
     pointerEvents: "none",
@@ -126,7 +127,14 @@ const labelSva = sva({
         color: "var(--md-error)",
       },
       false: {}
+    },
+    hasLeadingIcon: {
+      true: { left: "48px" },
+      false: { left: "16px" }
     }
+  },
+  defaultVariants: {
+    hasLeadingIcon: false
   },
   compoundVariants: [
     {
@@ -135,6 +143,14 @@ const labelSva = sva({
       style: {
         background: "transparent",
         padding: "0",
+      }
+    },
+    {
+      state: "floated",
+      variant: "filled",
+      style: {
+        top: "8px",
+        transform: "translateY(0) scale(0.75)",
       }
     }
   ]
@@ -150,7 +166,12 @@ const inputSva = sva({
     fontFamily: "inherit",
     fontSize: "1rem",
     color: "var(--md-on-surface)",
-    paddingTop: "8px", // room for floated label
+  },
+  variants: {
+    variant: {
+      filled: { paddingTop: "14px" },
+      outlined: { paddingTop: "0" },
+    }
   }
 });
 
@@ -166,7 +187,14 @@ const iconSva = sva({
     position: {
       leading: { marginRight: "12px" },
       trailing: { marginLeft: "12px" }
+    },
+    interactive: {
+      true: { cursor: "pointer" },
+      false: { cursor: "default" }
     }
+  },
+  defaultVariants: {
+    interactive: false
   }
 });
 
@@ -189,13 +217,15 @@ export class TextField extends BaseElement {
   private labelEl: HTMLSpanElement;
   private fieldWrap: HTMLDivElement;
   private supportingText?: HTMLSpanElement;
-  private leadingIconSpan?: HTMLSpanElement;
-  private trailingIconSpan?: HTMLSpanElement;
+  private leadingIconSpan?: Icon;
+  private trailingIconSpan?: Icon;
   
   private variant: TextFieldVariant;
   private labelText: string;
-  private isFocused = false;
-  private isError = false;
+  private isFocused: Signal<boolean>;
+  private isError: Signal<boolean>;
+  public valueSignal: Signal<string>;
+  private _placeholderText = "";
 
   constructor(label: string, variant: TextFieldVariant = "filled") {
     super("div");
@@ -211,91 +241,97 @@ export class TextField extends BaseElement {
     
     this.input = document.createElement("input");
     this.input.type = "text";
-    this.input.className = inputSva();
+    this.input.className = inputSva({ variant });
 
     this.fieldWrap.appendChild(this.labelEl);
     this.fieldWrap.appendChild(this.input);
     this.element.appendChild(this.fieldWrap);
 
-    this.updateStyles();
+    this.isFocused = CreateSignal(false);
+    this.isError = CreateSignal(false);
+    this.valueSignal = CreateSignal("");
 
-    this.input.addEventListener("focus", () => {
-      this.isFocused = true;
-      this.updateStyles();
+    const updateView = () => {
+      const hasValue = !!this.valueSignal.Get();
+      const focused = this.isFocused.Get();
+      const error = this.isError.Get();
+      const floated = focused || hasValue;
+
+      this.fieldWrap.className = fieldWrapSva({
+        variant: this.variant,
+        focused: focused,
+        error: error
+      });
+
+      this.labelEl.className = labelSva({
+        variant: this.variant,
+        state: floated ? "floated" : "rest",
+        focused: focused && !error,
+        error: error,
+        hasLeadingIcon: !!this.leadingIconSpan
+      });
+
+      this.input.placeholder = floated ? this._placeholderText : "";
+    };
+
+    Bind(this.isFocused, updateView);
+    Bind(this.isError, updateView);
+    Bind(this.valueSignal, (val) => {
+      this.input.value = val;
+      updateView();
     });
 
-    this.input.addEventListener("blur", () => {
-      this.isFocused = false;
-      this.updateStyles();
-    });
-
-    this.input.addEventListener("input", () => {
-      this.updateStyles();
-    });
+    this.input.addEventListener("focus", () => this.isFocused.Set(true));
+    this.input.addEventListener("blur", () => this.isFocused.Set(false));
+    this.input.addEventListener("input", () => this.valueSignal.Set(this.input.value));
     
     this.fieldWrap.addEventListener("click", () => {
       this.input.focus();
     });
   }
 
-  private updateStyles() {
-    const hasValue = !!this.input.value;
-    const floated = this.isFocused || hasValue;
-
-    this.fieldWrap.className = fieldWrapSva({
-      variant: this.variant,
-      focused: this.isFocused,
-      error: this.isError
-    });
-
-    this.labelEl.className = labelSva({
-      variant: this.variant,
-      state: floated ? "floated" : "rest",
-      focused: this.isFocused && !this.isError,
-      error: this.isError
-    });
-
-    // If outlined, the label background covers the border.
-    // If it's not floated, it should not have a background.
-    // SVA handles this via compoundVariants.
-  }
-
   SetValue(value: string): this {
-    this.input.value = value;
-    this.updateStyles();
+    this.valueSignal.Set(value);
     return this;
   }
 
   GetValue(): string {
-    return this.input.value;
+    return this.valueSignal.Get();
   }
 
   SetPlaceholder(text: string): this {
-    this.input.placeholder = text;
+    this._placeholderText = text;
+    this.input.placeholder = (this.isFocused.Get() || !!this.valueSignal.Get()) ? text : "";
     return this;
   }
 
-  SetLeadingIcon(icon: string): this {
+  SetLeadingIcon(iconNodes: SvgIconNode[]): this {
     if (!this.leadingIconSpan) {
-      this.leadingIconSpan = document.createElement("span");
-      this.leadingIconSpan.className = "material-icons " + iconSva({ position: "leading" });
-      this.fieldWrap.insertBefore(this.leadingIconSpan, this.labelEl);
-      this.labelEl.style.left = "48px"; // Adjust label position
+      this.leadingIconSpan = new Icon(iconNodes);
+      this.leadingIconSpan.element.className = iconSva({ position: "leading", interactive: false });
+      this.fieldWrap.insertBefore(this.leadingIconSpan.element, this.labelEl);
+      this.labelEl.className = labelSva({
+        variant: this.variant,
+        state: this.isFocused.Get() || !!this.valueSignal.Get() ? "floated" : "rest",
+        focused: this.isFocused.Get() && !this.isError.Get(),
+        error: this.isError.Get(),
+        hasLeadingIcon: true
+      });
     }
-    this.leadingIconSpan.textContent = icon;
+    this.leadingIconSpan.SetIcon(iconNodes);
     return this;
   }
 
-  SetTrailingIcon(icon: string, onClick?: () => void): this {
+  SetTrailingIcon(iconNodes: SvgIconNode[], onClick?: () => void): this {
     if (!this.trailingIconSpan) {
-      this.trailingIconSpan = document.createElement("span");
-      this.trailingIconSpan.className = "material-icons " + iconSva({ position: "trailing" });
-      this.fieldWrap.appendChild(this.trailingIconSpan);
+      this.trailingIconSpan = new Icon(iconNodes);
+      this.trailingIconSpan.element.className = iconSva({ position: "trailing", interactive: false });
+      this.fieldWrap.appendChild(this.trailingIconSpan.element);
     }
-    this.trailingIconSpan.textContent = icon;
+    this.trailingIconSpan.SetIcon(iconNodes);
     if (onClick) {
-      this.trailingIconSpan.style.cursor = "pointer";
-      this.trailingIconSpan.onclick = (e) => {
+      this.trailingIconSpan.element.className = iconSva({ position: "trailing", interactive: true });
+      this.trailingIconSpan.element.onclick = (e) => {
         e.stopPropagation();
         onClick();
       };
@@ -308,10 +344,9 @@ export class TextField extends BaseElement {
       this.supportingText = document.createElement("span");
       this.element.appendChild(this.supportingText);
     }
-    this.isError = isError;
+    this.isError.Set(isError);
     this.supportingText.className = supportingTextSva({ error: isError });
     this.supportingText.textContent = text;
-    this.updateStyles();
     return this;
   }
 
@@ -323,7 +358,7 @@ export class TextField extends BaseElement {
   }
 
   SetOnChange(callback: (value: string) => void): this {
-    this.input.addEventListener("input", () => callback(this.input.value));
+    this.valueSignal.Subscribe(callback);
     return this;
   }
 

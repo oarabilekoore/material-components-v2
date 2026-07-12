@@ -1,21 +1,11 @@
+import { Icon, SvgIconNode, Icons } from "../icons/Icon.ts";
+import { OverlayElement } from "../../../core/src/elements/Overlay.ts";
 import { BaseElement } from "../../../core/src/elements/BaseElement.ts";
 import { DialogType } from "../theme.ts";
 import { sva } from "../../../core/src/utils/sva.ts";
+import { Signal, CreateSignal, Bind } from "../../../core/src/state/signals.ts";
 
-const scrimSva = sva({
-  base: {
-    position: "fixed",
-    top: "0",
-    left: "0",
-    right: "0",
-    bottom: "0",
-    backgroundColor: "rgba(0, 0, 0, 0.4)",
-    zIndex: 1999,
-    display: "none",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-});
+// scrimSva removed because OverlayElement provides it
 
 const dialogSva = sva({
   base: {
@@ -99,7 +89,23 @@ const basicIconSva = sva({
   base: {
     fontSize: "24px",
     color: "var(--md-secondary)",
-    display: "none",
+    alignSelf: "center",
+    marginBottom: "16px",
+  },
+  variants: {
+    visible: {
+      true: {
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+      },
+      false: {
+        display: "none",
+      },
+    },
+  },
+  defaultVariants: {
+    visible: false,
   },
 });
 
@@ -108,6 +114,7 @@ const basicTitleSva = sva({
     fontSize: "1.5rem",
     fontWeight: "400",
     lineHeight: "2rem",
+    textAlign: "center",
   },
 });
 
@@ -152,33 +159,34 @@ const actionBtnSva = sva({
     borderRadius: "8px",
     transition: "background-color 0.2s ease",
     fontFamily: "var(--md-font-family, Roboto, sans-serif)",
+    "&:hover": {
+      backgroundColor: "var(--md-primary-container)",
+    },
   },
 });
 
-export class Dialog extends BaseElement {
-  private scrim: HTMLElement;
+const dividerSva = sva({
+  base: {
+    height: "1px",
+    background: "var(--md-outline-variant)",
+    flexShrink: 0,
+  },
+});
+
+export class Dialog extends OverlayElement {
   private iconEl: HTMLElement;
+  private _icon?: Icon;
   private titleEl: HTMLElement;
   private contentEl: HTMLElement;
   private actionsEl: HTMLElement;
   private headerEl: HTMLElement | null = null;
   private divider: HTMLElement | null = null;
   private type: DialogType;
-  private _isOpen = false;
   private _onCancel?: () => void;
-  private _onKeydown = (e: KeyboardEvent) => {
-    if (e.key === "Escape") this.Cancel();
-  };
 
   constructor(type: DialogType = "basic") {
-    super("div");
+    super("div", { scrim: true, dismissOnScrimClick: true, dismissOnEscape: true, exitAnimationMs: 0 });
     this.type = type;
-
-    this.scrim = document.createElement("div");
-    this.scrim.className = scrimSva();
-    this.scrim.addEventListener("click", (e) => {
-      if (e.target === this.scrim) this.Cancel();
-    });
 
     this.element.className = `m3-dialog m3-dialog-${type} ` + dialogSva({ type });
     this.element.setAttribute("role", "dialog");
@@ -188,10 +196,10 @@ export class Dialog extends BaseElement {
       this.headerEl = document.createElement("div");
       this.headerEl.className = fullScreenHeaderSva();
 
-      const closeIcon = document.createElement("span");
-      closeIcon.className = "material-icons " + closeIconSva();
-      closeIcon.textContent = "close";
-      closeIcon.addEventListener("click", () => this.Cancel());
+      const closeIconObj = new Icon(Icons.close);
+      closeIconObj.element.className = closeIconSva();
+      closeIconObj.element.addEventListener("click", () => this.Cancel());
+      const closeIcon = closeIconObj.element;
 
       this.titleEl = document.createElement("div");
       this.titleEl.className = fullScreenTitleSva();
@@ -211,7 +219,7 @@ export class Dialog extends BaseElement {
       this.element.appendChild(this.contentEl);
     } else {
       this.iconEl = document.createElement("div");
-      this.iconEl.className = "material-icons " + basicIconSva();
+      this.iconEl.className = basicIconSva();
       this.element.appendChild(this.iconEl);
 
       this.titleEl = document.createElement("div");
@@ -227,11 +235,24 @@ export class Dialog extends BaseElement {
       this.element.appendChild(this.actionsEl);
     }
 
-    this.scrim.appendChild(this.element);
-    if (typeof document !== "undefined") {
-      document.body.appendChild(this.scrim);
-      this.ensureAnimations();
-    }
+    this.ensureAnimations();
+    
+    // Bind the Dialog's custom Cancel handler to the Overlay's dismiss logic
+    this.SetOnDismiss(() => {
+      if (this._onCancel) this._onCancel();
+    });
+    
+    Bind(this.GetIsOpenSignal(), (isOpen) => {
+      if (isOpen) {
+        if (typeof document !== "undefined") {
+          document.body.style.overflow = "hidden";
+        }
+      } else {
+        if (typeof document !== "undefined") {
+          document.body.style.overflow = "";
+        }
+      }
+    });
   }
 
   private ensureAnimations(): void {
@@ -247,10 +268,15 @@ export class Dialog extends BaseElement {
     }
   }
 
-  SetIcon(iconName: string): this {
+  SetIcon(iconNodes: SvgIconNode[]): this {
     if (this.type !== "basic") return this;
-    this.iconEl.textContent = iconName;
-    this.iconEl.style.display = "block";
+    if (!this._icon) {
+      this._icon = new Icon(iconNodes);
+      this.iconEl.appendChild(this._icon.element);
+    } else {
+      this._icon.SetIcon(iconNodes);
+    }
+    this.iconEl.className = basicIconSva({ visible: true });
     return this;
   }
 
@@ -277,7 +303,7 @@ export class Dialog extends BaseElement {
   ShowDivider(): this {
     if (this.divider) return this;
     this.divider = document.createElement("div");
-    this.divider.style.cssText = `height: 1px; background: var(--md-outline-variant); flex-shrink: 0;`;
+    this.divider.className = dividerSva();
     this.contentEl.insertAdjacentElement(
       this.type === "full-screen" ? "beforebegin" : "afterend",
       this.divider,
@@ -289,13 +315,6 @@ export class Dialog extends BaseElement {
     const btn = document.createElement("button");
     btn.className = actionBtnSva();
     btn.textContent = text;
-    
-    btn.addEventListener("mouseenter", () => {
-      btn.style.backgroundColor = "var(--md-primary-container)";
-    });
-    btn.addEventListener("mouseleave", () => {
-      btn.style.backgroundColor = "transparent";
-    });
     btn.addEventListener("click", callback);
     this.actionsEl.appendChild(btn);
     return this;
@@ -307,33 +326,10 @@ export class Dialog extends BaseElement {
   }
 
   private Cancel(): void {
-    this._onCancel?.();
-    this.Close();
+    this.Dismiss();
   }
 
-  override Show(): this {
-    this._isOpen = true;
-    this.scrim.style.display = "flex";
-    if (typeof document !== "undefined") {
-      document.body.style.overflow = "hidden";
-      document.addEventListener("keydown", this._onKeydown);
-    }
-    return this;
-  }
 
-  Close(): this {
-    this._isOpen = false;
-    this.scrim.style.display = "none";
-    if (typeof document !== "undefined") {
-      document.body.style.overflow = "";
-      document.removeEventListener("keydown", this._onKeydown);
-    }
-    return this;
-  }
-
-  IsOpen(): boolean {
-    return this._isOpen;
-  }
 
   override GetType(): string {
     return "Dialog";
@@ -342,4 +338,19 @@ export class Dialog extends BaseElement {
 
 function CreateDialog(type: DialogType = "basic"): Dialog {
   return new Dialog(type);
+}
+
+/**
+ * AddDialog function.
+ * @param {import("../../../core/src/elements/Layout.ts").LayoutElement} parent - The parent parameter
+ * @param {DialogType} type - The type parameter
+ * @returns {Dialog}
+ */
+export function AddDialog(
+  parent: import("../../../core/src/elements/Layout.ts").LayoutElement,
+  type: DialogType = "basic",
+): Dialog {
+  const dialog = CreateDialog(type);
+  parent.AddChild(dialog);
+  return dialog;
 }

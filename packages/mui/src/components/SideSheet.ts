@@ -1,34 +1,12 @@
+import { Icon, SvgIconNode, Icons } from "../icons/Icon.ts";
+import { OverlayElement } from "../../../core/src/elements/Overlay.ts";
 import { BaseElement } from "../../../core/src/elements/BaseElement.ts";
 import { LayoutElement } from "../../../core/src/elements/Layout.ts";
 import { sva } from "../../../core/src/utils/sva.ts";
 import { attachRipple } from "../../../core/src/utils/ripple.ts";
+import { Bind } from "../../../core/src/state/signals.ts";
 
-const scrimSva = sva({
-  base: {
-    position: "fixed",
-    inset: "0",
-    backgroundColor: "rgba(0, 0, 0, 0.32)",
-    zIndex: 99,
-    opacity: "0",
-    pointerEvents: "none",
-    transition: "opacity 0.3s cubic-bezier(0.2, 0, 0, 1)",
-  },
-  variants: {
-    open: {
-      true: {
-        opacity: "1",
-        pointerEvents: "auto",
-      },
-      false: {
-        opacity: "0",
-        pointerEvents: "none",
-      }
-    }
-  },
-  defaultVariants: {
-    open: false
-  }
-});
+// scrimSva removed because OverlayElement provides it
 
 const sheetSva = sva({
   base: {
@@ -111,22 +89,33 @@ const closeBtnSva = sva({
   },
 });
 
-export class SideSheet extends BaseElement {
-  private scrim: HTMLDivElement;
+const contentSva = sva({
+  base: {
+    flex: "1",
+    overflowY: "auto",
+    scrollSnapType: "y mandatory",
+  },
+});
+
+export class SideSheet extends OverlayElement {
   private titleEl: HTMLDivElement;
-  private closeBtn: HTMLButtonElement;
+  private closeBtn: Icon;
   private contentEl: HTMLDivElement;
-  private isOpen = false;
+  private _contentComponent?: BaseElement;
   private type: "modal" | "standard";
 
   constructor(title = "Side Sheet", type: "modal" | "standard" = "modal") {
-    super("div");
+    super("div", { 
+      scrim: type === "modal", 
+      dismissOnScrimClick: true, 
+      dismissOnEscape: true, 
+      exitAnimationMs: 300,
+      mountToBody: type === "modal" 
+    });
     this.type = type;
     this.element.className = sheetSva({ type, open: false });
 
-    this.scrim = document.createElement("div");
-    this.scrim.className = scrimSva({ open: false });
-    this.scrim.addEventListener("click", () => this.Close());
+    this.element.className = sheetSva({ type, open: false });
 
     const header = document.createElement("div");
     header.className = headerSva();
@@ -136,52 +125,22 @@ export class SideSheet extends BaseElement {
     this.titleEl.textContent = title;
     header.appendChild(this.titleEl);
 
-    this.closeBtn = document.createElement("button");
-    this.closeBtn.className = closeBtnSva() + " material-icons";
-    this.closeBtn.textContent = "close";
-    this.closeBtn.addEventListener("click", () => this.Close());
-    attachRipple(this.closeBtn);
-    header.appendChild(this.closeBtn);
+    this.closeBtn = new Icon(Icons.close);
+    this.closeBtn.element.className = closeBtnSva();
+    this.closeBtn.SetIconSize(24);
+    this.closeBtn.element.addEventListener("click", () => this.Close());
+    attachRipple(this.closeBtn.element);
+    header.appendChild(this.closeBtn.element);
 
     this.element.appendChild(header);
 
     this.contentEl = document.createElement("div");
-    this.contentEl.style.flex = "1";
-    this.contentEl.style.overflowY = "auto";
-    // For snap scrolling, though mostly relevant to carousel, add it just in case
-    this.contentEl.style.scrollSnapType = "y mandatory";
+    this.contentEl.className = contentSva();
     this.element.appendChild(this.contentEl);
 
-    if (typeof document !== "undefined") {
-      if (this.type === "modal") {
-        document.body.appendChild(this.scrim);
-      }
-      document.body.appendChild(this.element);
-    }
-  }
-
-  Open() {
-    this.isOpen = true;
-    this.element.className = sheetSva({ type: this.type, open: true });
-    if (this.type === "modal") {
-      this.scrim.className = scrimSva({ open: true });
-    }
-    return this;
-  }
-
-  Close() {
-    this.isOpen = false;
-    this.element.className = sheetSva({ type: this.type, open: false });
-    if (this.type === "modal") {
-      this.scrim.className = scrimSva({ open: false });
-    }
-    return this;
-  }
-
-  Toggle() {
-    if (this.isOpen) this.Close();
-    else this.Open();
-    return this;
+    Bind(this.GetIsOpenSignal(), (isOpen) => {
+      this.element.className = sheetSva({ type: this.type, open: isOpen });
+    });
   }
 
   SetTitle(title: string): this {
@@ -190,10 +149,15 @@ export class SideSheet extends BaseElement {
   }
 
   SetContent(content: string | BaseElement): this {
+    if (this._contentComponent) {
+      this._contentComponent.Dispose();
+      this._contentComponent = undefined;
+    }
     this.contentEl.innerHTML = "";
     if (typeof content === "string") {
       this.contentEl.textContent = content;
     } else {
+      this._contentComponent = content;
       this.contentEl.appendChild(content.element);
     }
     return this;

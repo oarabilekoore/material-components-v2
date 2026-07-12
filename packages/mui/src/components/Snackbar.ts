@@ -1,6 +1,63 @@
 import { BaseElement } from "../../../core/src/elements/BaseElement.ts";
 import { currentTheme } from "../theme.ts";
 import { attachRipple } from "../../../core/src/utils/ripple.ts";
+import { sva } from "../../../core/src/utils/sva.ts";
+
+const containerSva = sva({
+  base: {
+    position: "fixed",
+    left: "50%",
+    bottom: "24px",
+    transform: "translateX(-50%)",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: "8px",
+    zIndex: 2000,
+    pointerEvents: "none",
+  },
+});
+
+const snackbarSva = sva({
+  base: {
+    backgroundColor: "var(--md-inverse-surface)",
+    color: "var(--md-inverse-on-surface)",
+    padding: "12px 24px",
+    borderRadius: "calc(var(--md-shape-corner-small) * var(--md-shape-scale, 1))",
+    boxShadow: "0 3px 6px rgba(0,0,0,0.25)",
+    display: "flex",
+    alignItems: "center",
+    gap: "24px",
+    fontFamily: "var(--md-font-family, Roboto, sans-serif)",
+    fontSize: "0.875rem",
+    transition: "transform 0.3s cubic-bezier(0.2, 0, 0, 1), opacity 0.3s cubic-bezier(0.2, 0, 0, 1)",
+    transform: "translateY(100px)",
+    opacity: "0",
+    maxWidth: "90vw",
+    minWidth: "288px",
+    pointerEvents: "auto",
+  },
+});
+
+const actionBtnSva = sva({
+  base: {
+    background: "transparent",
+    border: "none",
+    color: "var(--md-inverse-primary)",
+    fontWeight: "500",
+    cursor: "pointer",
+    padding: "8px",
+    margin: "-8px 0",
+    borderRadius: "calc(var(--md-shape-corner-small) * var(--md-shape-scale, 1))",
+    fontSize: "0.875rem",
+    fontFamily: "var(--md-font-family, Roboto, sans-serif)",
+    pointerEvents: "auto",
+    transition: "background-color 0.2s ease",
+    "&:hover": {
+      backgroundColor: "rgba(255, 255, 255, 0.08)",
+    },
+  },
+});
 
 export class SnackbarManager {
   private static instance: SnackbarManager;
@@ -10,18 +67,7 @@ export class SnackbarManager {
 
   private constructor() {
     this.container = document.createElement("div");
-    this.container.style.cssText = `
-      position: fixed;
-      left: 50%;
-      bottom: 24px;
-      transform: translateX(-50%);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 8px;
-      z-index: 2000;
-      pointer-events: none;
-    `;
+    this.container.className = containerSva();
     if (typeof document !== "undefined") {
       document.body.appendChild(this.container);
     }
@@ -35,6 +81,9 @@ export class SnackbarManager {
   }
 
   show(snackbar: Snackbar) {
+    if (this.activeSnackbar === snackbar || this.queue.includes(snackbar)) {
+      return;
+    }
     this.queue.push(snackbar);
     if (!this.activeSnackbar) {
       this.showNext();
@@ -51,8 +100,10 @@ export class SnackbarManager {
     
     // Animate in
     requestAnimationFrame(() => {
-      this.activeSnackbar!.element.style.transform = "translateY(0)";
-      this.activeSnackbar!.element.style.opacity = "1";
+      if (this.activeSnackbar) {
+        this.activeSnackbar.element.style.transform = "translateY(0)";
+        this.activeSnackbar.element.style.opacity = "1";
+      }
     });
 
     const duration = this.activeSnackbar.getDuration();
@@ -67,6 +118,7 @@ export class SnackbarManager {
     if (!this.activeSnackbar) return;
     
     const sb = this.activeSnackbar;
+    this.activeSnackbar = null;
     sb.element.style.transform = "translateY(100px)";
     sb.element.style.opacity = "0";
     
@@ -82,24 +134,7 @@ export class Snackbar extends BaseElement {
 
   constructor(message: string, action: string = "", onAction?: () => void) {
     super("div");
-    this.element.style.cssText = `
-      background: ${currentTheme.inverseSurface};
-      color: ${currentTheme.inverseOnSurface};
-      padding: 12px 24px;
-      border-radius: ${currentTheme.shapeCornerSmall * (currentTheme.shapeScale || 1)}px;
-      box-shadow: 0 ${currentTheme.elevationLevel3}px ${currentTheme.elevationLevel4}px rgba(0,0,0,0.25);
-      display: flex;
-      align-items: center;
-      gap: 24px;
-      font-family: var(--md-font-family, Roboto, sans-serif);
-      font-size: 0.875rem;
-      transition: transform 0.3s cubic-bezier(0.2, 0, 0, 1), opacity 0.3s cubic-bezier(0.2, 0, 0, 1);
-      transform: translateY(100px);
-      opacity: 0;
-      max-width: 90vw;
-      min-width: 288px;
-      pointer-events: auto;
-    `;
+    this.element.className = "m3-snackbar " + snackbarSva();
 
     const messageSpan = document.createElement("span");
     messageSpan.textContent = message;
@@ -109,27 +144,7 @@ export class Snackbar extends BaseElement {
     if (action && onAction) {
       const actionBtn = document.createElement("button");
       actionBtn.textContent = action;
-      actionBtn.style.cssText = `
-        background: transparent;
-        border: none;
-        color: ${currentTheme.inversePrimary};
-        font-weight: 500;
-        cursor: pointer;
-        padding: 8px;
-        margin: -8px 0;
-        border-radius: ${currentTheme.shapeCornerSmall * (currentTheme.shapeScale || 1)}px;
-        font-size: 0.875rem;
-        font-family: var(--md-font-family, Roboto, sans-serif);
-        pointer-events: auto;
-        transition: background-color 0.2s ease;
-      `;
-      
-      actionBtn.addEventListener("mouseenter", () => {
-        actionBtn.style.backgroundColor = "rgba(255, 255, 255, 0.08)";
-      });
-      actionBtn.addEventListener("mouseleave", () => {
-        actionBtn.style.backgroundColor = "transparent";
-      });
+      actionBtn.className = actionBtnSva();
 
       actionBtn.addEventListener("click", () => {
         onAction();

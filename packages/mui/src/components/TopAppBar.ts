@@ -1,3 +1,4 @@
+import { Icon, SvgIconNode, Icons } from "../icons/Icon.ts";
 import { BaseElement } from "../../../core/src/elements/BaseElement.ts";
 import { LayoutElement } from "../../../core/src/elements/Layout.ts";
 import { TopAppBarVariant } from "../theme.ts";
@@ -255,12 +256,12 @@ export function AddTopAppBar(
 }
 
 function CreateAppBarIcon(
-  iconName: string,
+  iconNameNodes: SvgIconNode[],
   onClick?: () => void,
 ): BaseElement {
-  const icon = new BaseElement("span");
-  icon.element.className = "material-icons " + appIconSva();
-  icon.element.textContent = iconName;
+  const icon = new Icon(iconNameNodes);
+  icon.element.className = appIconSva();
+  icon.SetIconSize(24);
   if (onClick) icon.element.addEventListener("click", onClick);
   return icon;
 }

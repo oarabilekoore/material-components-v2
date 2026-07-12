@@ -1,3 +1,4 @@
+import { Icon, SvgIconNode, Icons } from "../icons/Icon.ts";
 import { BaseElement } from "../../../core/src/elements/BaseElement.ts";
 import { LayoutElement } from "../../../core/src/elements/Layout.ts";
 import { FabSize } from "../theme.ts";
@@ -16,6 +17,9 @@ const fabSva = sva({
     boxShadow: "0 6px 10px rgba(0,0,0,0.15)",
     transition: "box-shadow 0.2s ease, background-color 0.2s ease",
     fontFamily: "var(--md-font-family, Roboto, sans-serif)",
+    "&:hover": {
+      boxShadow: "0 8px 16px rgba(0,0,0,0.25)",
+    },
   },
   variants: {
     size: {
@@ -54,26 +58,17 @@ const iconSva = sva({
 
 export class Fab extends BaseElement {
   private _size: FabSize;
-  private iconEl: HTMLElement;
+  private _icon: Icon;
   private _svaClass = "";
 
-  constructor(icon: string, size: FabSize = "medium") {
+  constructor(iconNodes: SvgIconNode[], size: FabSize = "medium") {
     super("button");
     this._size = size;
     
     this.applyVariant(size);
 
-    this.iconEl = document.createElement("span");
-    this.iconEl.className = "material-icons " + iconSva({ size });
-    this.iconEl.textContent = icon;
-    this.element.appendChild(this.iconEl);
-
-    this.element.addEventListener("mouseenter", () => {
-      this.element.style.boxShadow = "0 8px 16px rgba(0,0,0,0.25)";
-    });
-    this.element.addEventListener("mouseleave", () => {
-      this.element.style.boxShadow = "0 6px 10px rgba(0,0,0,0.15)";
-    });
+    this._icon = new Icon(iconNodes, size);
+    this.element.appendChild(this._icon.element);
 
     attachRipple(this.element);
   }
@@ -86,8 +81,8 @@ export class Fab extends BaseElement {
     this.element.classList.add(this._svaClass);
   }
 
-  SetIcon(icon: string): this {
-    this.iconEl.textContent = icon;
+  SetIcon(iconNodes: SvgIconNode[]): this {
+    this._icon.SetIcon(iconNodes);
     return this;
   }
 
@@ -101,8 +96,8 @@ export class Fab extends BaseElement {
   }
 }
 
-function CreateFab(icon: string, size: FabSize = "medium"): Fab {
-  return new Fab(icon, size);
+function CreateFab(iconNodes: SvgIconNode[], size: FabSize = "medium"): Fab {
+  return new Fab(iconNodes, size);
 }
 
 /**
@@ -115,10 +110,10 @@ function CreateFab(icon: string, size: FabSize = "medium"): Fab {
  */
 export function AddFab(
   parent: LayoutElement,
-  icon: string,
+  iconNodes: SvgIconNode[],
   size: FabSize = "medium",
 ): Fab {
-  const fab = CreateFab(icon, size);
+  const fab = CreateFab(iconNodes, size);
   parent.AddChild(fab);
   return fab;
 }

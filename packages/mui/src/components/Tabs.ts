@@ -1,49 +1,99 @@
 import { BaseElement } from "../../../core/src/elements/BaseElement.ts";
 import { LayoutElement } from "../../../core/src/elements/Layout.ts";
 import { currentTheme } from "../theme.ts";
+import { Signal, CreateSignal, Bind } from "../../../core/src/state/signals.ts";
+import { sva } from "../../../core/src/utils/sva.ts";
 
 export type TabsVariant = "primary" | "secondary";
+
+const tabsSva = sva({
+  base: {
+    display: "flex",
+    position: "relative",
+    borderBottom: "1px solid var(--md-outline-variant)",
+    fontFamily: "var(--md-font-family, Roboto, sans-serif)",
+  },
+});
+
+const indicatorSva = sva({
+  base: {
+    position: "absolute",
+    bottom: "0",
+    backgroundColor: "var(--md-primary)",
+    borderRadius: "3px 3px 0 0",
+    transition: "left 0.2s cubic-bezier(0.2, 0, 0, 1), width 0.2s cubic-bezier(0.2, 0, 0, 1)",
+  },
+  variants: {
+    variant: {
+      primary: { height: "3px" },
+      secondary: { height: "2px" },
+    },
+  },
+  defaultVariants: { variant: "primary" },
+});
+
+const tabBtnSva = sva({
+  base: {
+    border: "none",
+    background: "transparent",
+    cursor: "pointer",
+    padding: "0 16px",
+    height: "48px",
+    fontFamily: "var(--md-font-family, Roboto, sans-serif)",
+    fontSize: "14px",
+    fontWeight: "500",
+    transition: "color 0.1s ease",
+  },
+  variants: {
+    variant: {
+      primary: { flex: "1" },
+      secondary: { flex: "none" },
+    },
+    active: {
+      true: { color: "var(--md-primary)" },
+      false: { color: "var(--md-on-surface-variant)" },
+    },
+  },
+  defaultVariants: {
+    variant: "primary",
+    active: false,
+  },
+});
 
 export class Tabs extends BaseElement {
   private variant: TabsVariant;
   private tabButtons: HTMLButtonElement[] = [];
   private indicator: HTMLDivElement;
-  private activeIndex = 0;
+  private activeIndex: Signal<number>;
   private onSelect?: (index: number) => void;
 
   constructor(variant: TabsVariant = "primary") {
     super("div");
     this.variant = variant;
-    this.element.style.display = "flex";
-    this.element.style.position = "relative";
-    this.element.style.borderBottom = `1px solid ${currentTheme.outlineVariant}`;
-    this.element.style.fontFamily = currentTheme.fontFamily;
+    this.element.className = "m3-tabs " + tabsSva();
 
     this.indicator = document.createElement("div");
-    this.indicator.style.position = "absolute";
-    this.indicator.style.bottom = "0";
-    this.indicator.style.height = variant === "primary" ? "3px" : "2px";
-    this.indicator.style.backgroundColor = currentTheme.primary;
-    this.indicator.style.borderRadius = "3px 3px 0 0";
-    this.indicator.style.transition =
-      "left 0.2s cubic-bezier(0.2, 0, 0, 1), width 0.2s cubic-bezier(0.2, 0, 0, 1)";
+    this.indicator.className = indicatorSva({ variant });
     this.element.appendChild(this.indicator);
+
+    this.activeIndex = CreateSignal(-1);
+    Bind(this.activeIndex, (index) => {
+      this.tabButtons.forEach((btn, i) => {
+        btn.className = tabBtnSva({ variant: this.variant, active: i === index });
+      });
+
+      const target = this.tabButtons[index];
+      if (target) {
+        this.indicator.style.left = `${target.offsetLeft}px`;
+        this.indicator.style.width = `${target.offsetWidth}px`;
+      }
+    });
   }
 
   AddTab(label: string): this {
     const btn = document.createElement("button");
     btn.textContent = label;
-    btn.style.border = "none";
-    btn.style.background = "transparent";
-    btn.style.cursor = "pointer";
-    btn.style.padding = "0 16px";
-    btn.style.height = "48px";
-    btn.style.fontFamily = currentTheme.fontFamily;
-    btn.style.fontSize = "14px";
-    btn.style.fontWeight = "500";
-    btn.style.color = currentTheme.onSurfaceVariant;
-    btn.style.flex = this.variant === "primary" ? "1" : "none";
-    btn.style.transition = "color 0.1s ease";
+    btn.className = tabBtnSva({ variant: this.variant, active: false });
 
     const index = this.tabButtons.length;
     btn.addEventListener("click", () => this.SetActiveIndex(index));
@@ -57,23 +107,13 @@ export class Tabs extends BaseElement {
 
   SetActiveIndex(index: number): this {
     if (index < 0 || index >= this.tabButtons.length) return this;
-    this.activeIndex = index;
-
-    this.tabButtons.forEach((btn, i) => {
-      btn.style.color =
-        i === index ? currentTheme.primary : currentTheme.onSurfaceVariant;
-    });
-
-    const target = this.tabButtons[index];
-    this.indicator.style.left = `${target.offsetLeft}px`;
-    this.indicator.style.width = `${target.offsetWidth}px`;
-
+    this.activeIndex.Set(index);
     this.onSelect?.(index);
     return this;
   }
 
   GetActiveIndex(): number {
-    return this.activeIndex;
+    return this.activeIndex.Get();
   }
 
   SetOnSelect(callback: (index: number) => void): this {

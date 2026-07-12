@@ -2,6 +2,7 @@ import { BaseElement } from "../../../core/src/elements/BaseElement.ts";
 import { LayoutElement } from "../../../core/src/elements/Layout.ts";
 import { currentTheme, SliderStyle } from "../theme.ts";
 import { sva } from "../../../core/src/utils/sva.ts";
+import { Signal, CreateSignal, Bind } from "../../../core/src/state/signals.ts";
 
 const containerSva = sva({
   base: {
@@ -107,6 +108,16 @@ const tickSva = sva({
   }
 });
 
+const valueLabelSva = sva({
+  base: {
+    fontFamily: "var(--md-font-family, Roboto, sans-serif)",
+    fontSize: "12px",
+    color: "var(--md-on-surface-variant)",
+    marginTop: "4px",
+    textAlign: "center",
+  }
+});
+
 export class Slider extends BaseElement {
   declare element: HTMLDivElement;
   private input: HTMLInputElement;
@@ -114,6 +125,7 @@ export class Slider extends BaseElement {
   private valueLabel?: HTMLSpanElement;
   private min: number;
   private max: number;
+  public valueSignal: Signal<number>;
 
   constructor(
     min = 0,
@@ -164,10 +176,16 @@ export class Slider extends BaseElement {
       this.input.step = "1";
     }
 
-    this.input.addEventListener("input", () => this.updateView());
-    this.element.appendChild(this.input);
+    this.valueSignal = CreateSignal(value);
+    Bind(this.valueSignal, (val) => {
+      this.input.value = String(val);
+      this.updateView();
+    });
 
-    this.updateView();
+    this.input.addEventListener("input", () => {
+      this.valueSignal.Set(Number(this.input.value));
+    });
+    this.element.appendChild(this.input);
   }
 
   private percent(): number {
@@ -184,11 +202,7 @@ export class Slider extends BaseElement {
   ShowValueLabel(): this {
     if (!this.valueLabel) {
       this.valueLabel = document.createElement("span");
-      this.valueLabel.style.fontFamily = currentTheme.fontFamily;
-      this.valueLabel.style.fontSize = "12px";
-      this.valueLabel.style.color = currentTheme.onSurfaceVariant;
-      this.valueLabel.style.marginTop = "4px";
-      this.valueLabel.style.textAlign = "center";
+      this.valueLabel.className = valueLabelSva();
       this.element.appendChild(this.valueLabel);
     }
     this.valueLabel.textContent = this.input.value;
@@ -196,19 +210,16 @@ export class Slider extends BaseElement {
   }
 
   SetValue(value: number): this {
-    this.input.value = String(value);
-    this.input.dispatchEvent(new Event("input"));
+    this.valueSignal.Set(value);
     return this;
   }
 
   GetValue(): number {
-    return Number(this.input.value);
+    return this.valueSignal.Get();
   }
 
   SetOnChange(callback: (value: number) => void): this {
-    this.input.addEventListener("input", () =>
-      callback(Number(this.input.value)),
-    );
+    this.valueSignal.Subscribe(callback);
     return this;
   }
 

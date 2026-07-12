@@ -2,6 +2,10 @@
 
 export type StyleValue = Partial<CSSStyleDeclaration> | Record<string, any> | null | undefined | false;
 
+function isPlainObject(item: any): item is Record<string, any> {
+  return item !== null && typeof item === "object" && !Array.isArray(item);
+}
+
 /**
  * mergeStyles function.
  * @param {StyleValue[]} inputs - The inputs parameter
@@ -12,7 +16,13 @@ export function mergeStyles(...inputs: StyleValue[]): Record<string, any> {
   const merged: Record<string, any> = {};
   for (const input of inputs) {
     if (input && typeof input === "object") {
-      Object.assign(merged, input);
+      for (const [key, value] of Object.entries(input)) {
+        if (isPlainObject(value) && isPlainObject(merged[key])) {
+          merged[key] = mergeStyles(merged[key], value);
+        } else {
+          merged[key] = value;
+        }
+      }
     }
   }
   return merged;
@@ -157,18 +167,60 @@ export function hashCode(str: string): string {
  *
  */
 export function attachStyleObject(styleObj: Record<string, any>): string {
-  const cssText = styleObjectToCss(styleObj);
-  if (!cssText) return "";
-  const className = hashCode(cssText);
+  const flatStyles: Record<string, any> = {};
+  const nestedStyles: Record<string, Record<string, any>> = {};
+
+  for (const [key, value] of Object.entries(styleObj)) {
+    if (isPlainObject(value)) {
+      nestedStyles[key] = value;
+    } else {
+      flatStyles[key] = value;
+    }
+  }
+
+  const serializeForHash = (obj: any): string => {
+    if (!isPlainObject(obj)) return String(obj);
+    return Object.keys(obj).sort().map(k => `${k}:${serializeForHash(obj[k])}`).join(';');
+  };
+  const hashText = serializeForHash(styleObj);
+  
+  if (!hashText) return "";
+  const className = hashCode(hashText);
+
   if (!registeredClasses.has(className)) {
     const sheet = getOrCreateStyleSheet();
     if (sheet) {
-      try {
-        sheet.insertRule(`.${className} { ${cssText} }`, sheet.cssRules.length);
-        registeredClasses.add(className);
-      } catch (e) {
-        console.error("Failed to insert rule for", className, cssText, e);
+      const flatCssText = styleObjectToCss(flatStyles);
+      if (flatCssText) {
+        try {
+          sheet.insertRule(`.${className} { ${flatCssText} }`, sheet.cssRules.length);
+        } catch (e) {
+          console.warn("Failed to insert base rule for", className, e);
+        }
       }
+      
+      for (const [selector, nestedObj] of Object.entries(nestedStyles)) {
+        const nestedCssText = styleObjectToCss(nestedObj);
+        if (!nestedCssText) continue;
+        
+        let rule = "";
+        if (selector.startsWith("&")) {
+          const resolvedSelector = selector.replace(/&/g, `.${className}`);
+          rule = `${resolvedSelector} { ${nestedCssText} }`;
+        } else if (selector.startsWith("@media") || selector.startsWith("@container") || selector.startsWith("@supports")) {
+           rule = `${selector} { .${className} { ${nestedCssText} } }`;
+        } else {
+          rule = `.${className} ${selector} { ${nestedCssText} }`;
+        }
+        try {
+          sheet.insertRule(rule, sheet.cssRules.length);
+        } catch (e) {
+          // Some pseudo-elements (like ::-moz-range-thumb) will throw on unsupported browsers
+          // It's safe to ignore them as they are just graceful degradation styles.
+        }
+      }
+      
+      registeredClasses.add(className);
     }
   }
   return className;
@@ -192,7 +244,7 @@ export function sva<V extends Record<string, any>>(
     if (variants) {
       for (const [key, values] of Object.entries(variants)) {
         const propValue = merged[key];
-        if (propValue !== undefined && propValue !== null && propValue !== false) {
+        if (propValue !== undefined && propValue !== null) {
           const valStyle = (values as any)[String(propValue)];
           if (valStyle) activeStyles.push(valStyle);
         }

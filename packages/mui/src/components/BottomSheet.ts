@@ -1,18 +1,6 @@
-import { BaseElement } from "../../../core/src/elements/BaseElement.ts";
+import { OverlayElement } from "../../../core/src/elements/Overlay.ts";
 import { sva } from "../../../core/src/utils/sva.ts";
-
-const scrimSva = sva({
-  base: {
-    position: "fixed",
-    top: "0",
-    left: "0",
-    right: "0",
-    bottom: "0",
-    backgroundColor: "rgba(0, 0, 0, 0.4)",
-    zIndex: 1999,
-    display: "none",
-  },
-});
+import { Bind } from "../../../core/src/state/signals.ts";
 
 const sheetSva = sva({
   base: {
@@ -45,16 +33,11 @@ const handleSva = sva({
   },
 });
 
-export class BottomSheet extends BaseElement {
-  private scrim: HTMLElement;
+export class BottomSheet extends OverlayElement {
   private contentEl: HTMLElement;
-  private _isOpen: boolean = false;
 
   constructor() {
-    super("div");
-    this.scrim = document.createElement("div");
-    this.scrim.className = scrimSva();
-    this.scrim.addEventListener("click", () => this.Close());
+    super("div", { scrim: true, dismissOnScrimClick: true, dismissOnEscape: true, exitAnimationMs: 300 });
 
     this.element.className = "m3-bottom-sheet " + sheetSva();
 
@@ -66,10 +49,16 @@ export class BottomSheet extends BaseElement {
     this.contentEl.className = "sheet-content";
     this.element.appendChild(this.contentEl);
 
-    this.scrim.appendChild(this.element);
-    if (typeof document !== "undefined") {
-      document.body.appendChild(this.scrim);
-    }
+    let initialBind = true;
+    Bind(this.GetIsOpenSignal(), (isOpen) => {
+      if (isOpen) {
+        void this.element.offsetHeight;
+        this.element.style.transform = "translateY(0)";
+      } else {
+        this.element.style.transform = "translateY(100%)";
+      }
+      initialBind = false;
+    });
   }
 
   SetContent(content: string): this {
@@ -82,22 +71,7 @@ export class BottomSheet extends BaseElement {
     return this;
   }
 
-  override Show(): this {
-    this._isOpen = true;
-    this.scrim.style.display = "block";
-    void this.element.offsetHeight;
-    this.element.style.transform = "translateY(0)";
-    return this;
-  }
 
-  Close(): this {
-    this._isOpen = false;
-    this.element.style.transform = "translateY(100%)";
-    setTimeout(() => {
-      this.scrim.style.display = "none";
-    }, 300);
-    return this;
-  }
 
   override GetType(): string {
     return "BottomSheet";
@@ -106,4 +80,17 @@ export class BottomSheet extends BaseElement {
 
 function CreateBottomSheet(): BottomSheet {
   return new BottomSheet();
+}
+
+/**
+ * AddBottomSheet function.
+ * @param {import("../../../core/src/elements/Layout.ts").LayoutElement} parent - The parent parameter
+ * @returns {BottomSheet}
+ */
+export function AddBottomSheet(
+  parent: import("../../../core/src/elements/Layout.ts").LayoutElement,
+): BottomSheet {
+  const sheet = CreateBottomSheet();
+  parent.AddChild(sheet);
+  return sheet;
 }

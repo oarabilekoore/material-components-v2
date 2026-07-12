@@ -1,3 +1,4 @@
+import { Icon, SvgIconNode, Icons } from "../icons/Icon.ts";
 import { BaseElement } from "../../../core/src/elements/BaseElement.ts";
 import { LayoutElement } from "../../../core/src/elements/Layout.ts";
 import { sva } from "../../../core/src/utils/sva.ts";
@@ -75,27 +76,38 @@ const secondaryActionSva = sva({
     cursor: "pointer",
     borderLeft: "1px solid var(--md-outline-variant)", // divider
     outline: "none",
+  },
+  variants: {
+    variant: {
+      filled: { borderLeftColor: "rgba(0, 0, 0, 0.12)" },
+      outlined: {},
+      tonal: {},
+      elevated: { borderLeftColor: "rgba(0, 0, 0, 0.12)" },
+      text: {},
+      "filled-tonal": { borderLeftColor: "rgba(0, 0, 0, 0.12)" },
+    }
+  },
+  defaultVariants: {
+    variant: "filled"
   }
 });
 
 export class SplitButton extends BaseElement {
   private _primaryBtn: HTMLButtonElement;
   private _secondaryBtn: HTMLButtonElement;
-  private _iconSpan?: HTMLSpanElement;
+  private _iconSpan?: Icon;
 
-  constructor(label: string, variant: ButtonVariant = "filled", icon?: string) {
+  constructor(label: string, variant: ButtonVariant = "filled", iconNodes?: SvgIconNode[]) {
     super("div");
     this.element.className = "m3-split-button " + containerSva({ variant });
 
     this._primaryBtn = document.createElement("button");
     this._primaryBtn.className = primaryActionSva();
 
-    if (icon) {
-      this._iconSpan = document.createElement("span");
-      this._iconSpan.className = "material-icons";
-      this._iconSpan.style.fontSize = "18px";
-      this._iconSpan.textContent = icon;
-      this._primaryBtn.appendChild(this._iconSpan);
+    if (iconNodes) {
+      this._iconSpan = new Icon(iconNodes);
+      this._iconSpan.SetIconSize(18);
+      this._primaryBtn.appendChild(this._iconSpan.element);
     }
 
     const labelSpan = document.createElement("span");
@@ -103,21 +115,15 @@ export class SplitButton extends BaseElement {
     this._primaryBtn.appendChild(labelSpan);
 
     this._secondaryBtn = document.createElement("button");
-    this._secondaryBtn.className = secondaryActionSva();
-    const dropIcon = document.createElement("span");
-    dropIcon.className = "material-icons";
-    dropIcon.textContent = "arrow_drop_down";
-    this._secondaryBtn.appendChild(dropIcon);
+    this._secondaryBtn.className = secondaryActionSva({ variant });
+    const dropIcon = new Icon(Icons.menu);
+    this._secondaryBtn.appendChild(dropIcon.element);
 
     attachRipple(this._primaryBtn);
     attachRipple(this._secondaryBtn);
 
     this.element.appendChild(this._primaryBtn);
     this.element.appendChild(this._secondaryBtn);
-
-    if (variant === "filled" || variant === "filled-tonal" || variant === "elevated") {
-        this._secondaryBtn.style.borderLeftColor = "rgba(0, 0, 0, 0.12)"; // Subtle divider for colored backgrounds
-    }
   }
 
   SetOnPrimaryClick(callback: () => void): this {
@@ -135,8 +141,8 @@ export class SplitButton extends BaseElement {
   }
 }
 
-function CreateSplitButton(label: string, variant: ButtonVariant = "filled", icon?: string): SplitButton {
-  return new SplitButton(label, variant, icon);
+function CreateSplitButton(label: string, variant: ButtonVariant = "filled", iconNodes?: SvgIconNode[]): SplitButton {
+  return new SplitButton(label, variant, iconNodes);
 }
 
 /**
@@ -148,8 +154,8 @@ function CreateSplitButton(label: string, variant: ButtonVariant = "filled", ico
  * @returns {SplitButton}
  *
  */
-export function AddSplitButton(parent: LayoutElement, label: string, variant: ButtonVariant = "filled", icon?: string): SplitButton {
-  const btn = CreateSplitButton(label, variant, icon);
+export function AddSplitButton(parent: LayoutElement, label: string, variant: ButtonVariant = "filled", iconNodes?: SvgIconNode[]): SplitButton {
+  const btn = CreateSplitButton(label, variant, iconNodes);
   parent.AddChild(btn);
   return btn;
 }

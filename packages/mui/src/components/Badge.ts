@@ -1,6 +1,7 @@
 import { BaseElement } from "../../../core/src/elements/BaseElement.ts";
 import { BadgeVariant } from "../theme.ts";
 import { sva } from "../../../core/src/utils/sva.ts";
+import { LayoutElement } from "../../../core/src/elements/Layout.ts";
 
 const badgeSva = sva({
   base: {
@@ -86,11 +87,11 @@ function CreateBadge(
  *
  */
 export function AddBadge(
-  parent: HTMLElement,
+  parent: LayoutElement,
   variant: BadgeVariant = "small",
   content: string = "",
 ): Badge {
   const badge = CreateBadge(variant, content);
-  parent.appendChild(badge.element);
+  parent.AddChild(badge);
   return badge;
 }

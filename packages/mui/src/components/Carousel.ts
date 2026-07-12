@@ -29,6 +29,10 @@ const itemSva = sva({
     boxShadow: "0 1px 3px rgba(0,0,0,0.15)",
     transition: "transform 0.2s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.2s cubic-bezier(0.2, 0, 0, 1)",
     cursor: "pointer",
+    "&:hover": {
+      transform: "scale(1.02)",
+      boxShadow: "0 4px 8px rgba(0,0,0,0.2)",
+    },
   },
 });
 
@@ -68,15 +72,6 @@ export class Carousel extends BaseElement {
     }
     
     wrapper.appendChild(item.element);
-    
-    wrapper.addEventListener("mouseenter", () => {
-      wrapper.style.transform = "scale(1.02)";
-      wrapper.style.boxShadow = "0 4px 8px rgba(0,0,0,0.2)";
-    });
-    wrapper.addEventListener("mouseleave", () => {
-      wrapper.style.transform = "scale(1)";
-      wrapper.style.boxShadow = "0 1px 3px rgba(0,0,0,0.15)";
-    });
 
     this.element.appendChild(wrapper);
     return this;
