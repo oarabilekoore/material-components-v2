@@ -95,7 +95,7 @@ the fuller API reference.
 
 ## Documentation
 
-See [`docs/INTRODUCTION.md`](./docs/INTRODUCTION.md) for the full API
+See [`INTRODUCTION.md`](./INTRODUCTION.md) for the full API
 reference (components, theming, state, routing).
 
 ## Known issues
