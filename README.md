@@ -56,11 +56,12 @@ terminal:
 APP_ENV=development deno run -A --allow-net --allow-env --allow-read main.ts
 ```
 
-> **Note:** `docs/INTRODUCTION.md` currently references a `deno task dev` and a
+> **Note:** `INTRODUCTION.md` currently references a `deno task dev` and a
 > `deno task desktop:dev` command. As of this writing, `deno.json` does not
 > define a `dev` task, and `desktop:dev`/`build` invoke `deno desktop`, which
 > is not a standard Deno subcommand in this project — those two tasks
 > currently do not work. Use the `vite:dev` command above until this is fixed.
+> Refer to `INTRODUCTION.md` in the root directory for full setup and usage details.
 
 ### Using the library in your own project
 
