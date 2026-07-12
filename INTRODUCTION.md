@@ -1,5 +1,6 @@
 # Material Design 3 Framework – Complete Documentation
 
+---
 
 ## Table of Contents
 
@@ -31,7 +32,7 @@
    - [Observable API](#observable-api)
    - [Router API](#router-api)
 
-
+---
 
 ## Overview
 
@@ -49,7 +50,7 @@ This is a **complete Material Design 3 (M3)** UI framework written in TypeScript
 
 The framework is built on a lightweight `BaseElement` wrapper around native DOM elements, providing a consistent API for styling, positioning, and interaction.
 
-
+---
 
 ## Getting Started
 
@@ -89,7 +90,7 @@ export default { OnStart };
 
 The entry point expects an `OnStart` function to be exported (see `App.ts` example).
 
-
+---
 
 ## Core Concepts
 
@@ -133,7 +134,7 @@ const box = new BaseElement("div")
 #### What BaseElement gives you
 
 | Category | Methods | Notes |
-||||
+|---|---|---|
 | **Color & background** | `SetBackColor`, `SetBackAlpha`, `SetBackGradient`, `SetBackGradientRadial`, `SetBackground`, `SetColorFilter`, `AdjustColor` | `SetBackAlpha` accepts either a 0–1 fraction or a 1–256 "Android-style" alpha and normalizes it internally. |
 | **Raw styling** | `SetStyle(styleObject)` | Attaches an arbitrary style object via the same CSS-injection engine that powers `sva()` (see below) — useful for one-off styling that doesn't need a reusable variant set. |
 | **Size & position** | `SetSize`, `GetWidth`/`GetHeight`, `GetAbsWidth`/`GetAbsHeight`, `SetPosition`, `GetLeft`/`GetTop`/`GetPosition`, `SetScale` | Sizes are given as a **0–1 fraction of the parent** by default (e.g. `0.5` = 50% width); pass `-1` for auto, or `{ px: true }` to use literal pixels instead. |
@@ -160,7 +161,7 @@ wraps a single `<div>` and, depending on which `LayoutType` you construct it
 with, applies a different base CSS regime:
 
 | Type | Behavior |
-|||
+|---|---|
 | `"Linear"` (default) | `display: flex`, defaults to a **column**, with default gravity `Top,Center` already applied (`justify-content: flex-start`, `align-items: center`). Reorient with `SetOrientation("Horizontal" \| "Vertical")`. |
 | `"Absolute"` | A `position: relative` block container — children you position with `SetPosition(...)` are placed relative to it. |
 | `"Frame"` | Like `Absolute`, but `AddChild` automatically stacks each new child with `position: absolute; top: 0; left: 0` and an incrementing `z-index`, so children overlap in insertion order (comparable to Android's `FrameLayout`). |
@@ -220,7 +221,7 @@ in general) accepts a single comma-separated string as shorthand for common
 setup, parsed by `LayoutElement`'s internal `applyOptions`:
 
 | Token | Effect |
-|||
+|---|---|
 | `FillX`, `FillY`, `FillXY` | 100% width / height / both |
 | `Horizontal`, `Vertical` | Sets orientation |
 | `Wrap` | Enables flex-wrap |
@@ -294,7 +295,7 @@ this.element.classList.add(fabSva({ size: "large" }));
 **`SVAOptions`:**
 
 | Field | Purpose |
-|||
+|---|---|
 | `base` | A style object always applied. |
 | `variants` | A map of prop name → `{ value: style object }`. Whichever value you pass for that prop at call time selects the matching style object. |
 | `compoundVariants` | An array of `{ ...matchProps, style }` — the `style` is applied only when *every* listed prop matches simultaneously (e.g. `size: "large"` **and** `disabled: true` together). |
@@ -531,7 +532,7 @@ router.Navigate("/user/42");
 
 The router listens to `popstate` and renders the matched route into the outlet layout.
 
-
+---
 
 ## Components
 
@@ -562,7 +563,7 @@ const icon = ui.CreateAppBarIcon("menu", () => drawer.Open());
 appBar.SetNavigationIcon(icon);
 ```
 
-
+---
 
 #### NavigationBar
 
@@ -575,7 +576,7 @@ nav.AddItem("search", "Search", "search");
 nav.SetOnSelect((index, value) => console.log(value));
 ```
 
-
+---
 
 #### NavigationRail
 
@@ -587,7 +588,7 @@ rail.AddItem("home", "Home", "home");
 rail.SetFab(fabComponent);
 ```
 
-
+---
 
 #### NavigationDrawer
 
@@ -601,7 +602,7 @@ drawer.Open();
 drawer.Close();
 ```
 
-
+---
 
 #### Tabs
 
@@ -615,7 +616,7 @@ tabs.SetActiveIndex(0);
 tabs.SetOnSelect((index) => {});
 ```
 
-
+---
 
 ### Buttons & FABs
 
@@ -628,7 +629,7 @@ const btn = ui.CreateButton("Label", "filled");
 btn.SetOnClick(() => {});
 ```
 
-
+---
 
 #### FAB
 
@@ -640,7 +641,7 @@ fab.SetIcon("edit");
 fab.SetOnClick(() => {});
 ```
 
-
+---
 
 #### ExtendedFAB
 
@@ -652,7 +653,7 @@ extFab.Extend();  // show label
 extFab.Shrink();  // icon only
 ```
 
-
+---
 
 #### FabMenu
 
@@ -665,7 +666,7 @@ menu.AddItem("delete", "Delete", () => {});
 menu.Toggle();
 ```
 
-
+---
 
 #### IconButton
 
@@ -676,7 +677,7 @@ const iconBtn = ui.CreateIconButton("favorite");
 iconBtn.SetOnClick(() => {});
 ```
 
-
+---
 
 #### SegmentedButton
 
@@ -689,7 +690,7 @@ seg.AddSegment("Week", "week", "week");
 seg.SetOnSelect((index, value) => {});
 ```
 
-
+---
 
 ### Inputs & Forms
 
@@ -705,7 +706,7 @@ field.SetSupportingText("Required", true); // error
 field.SetOnChange((val) => {});
 ```
 
-
+---
 
 #### Checkbox
 
@@ -717,7 +718,7 @@ cb.SetChecked(true);
 cb.SetOnChange((checked) => {});
 ```
 
-
+---
 
 #### Switch
 
@@ -729,7 +730,7 @@ sw.SetChecked(true);
 sw.SetOnChange((checked) => {});
 ```
 
-
+---
 
 #### Radio
 
@@ -741,7 +742,7 @@ radio.SetChecked(true);
 radio.SetOnChange((checked, value) => {});
 ```
 
-
+---
 
 #### Slider
 
@@ -753,7 +754,7 @@ slider.ShowValueLabel();
 slider.SetOnChange((val) => {});
 ```
 
-
+---
 
 #### Chip
 
@@ -767,7 +768,7 @@ chip.SetOnSelect((selected) => {});
 chip.SetOnRemove(() => {});
 ```
 
-
+---
 
 ### Feedback & Overlays
 
@@ -797,7 +798,7 @@ full.AddContent(someLayout);
 full.Show();
 ```
 
-
+---
 
 #### BottomSheet
 
@@ -810,7 +811,7 @@ sheet.Show();
 sheet.Close();
 ```
 
-
+---
 
 #### Snackbar
 
@@ -821,7 +822,7 @@ const snack = ui.CreateSnackbar("Message", "Undo", () => {});
 snack.Show();
 ```
 
-
+---
 
 #### Tooltip
 
@@ -831,7 +832,7 @@ Hover tooltip attached to any `BaseElement`.
 const tooltip = ui.CreateTooltip(button, "Help text");
 ```
 
-
+---
 
 #### Menu
 
@@ -845,7 +846,7 @@ menu.ShowAtElement(button.element);
 menu.Close();
 ```
 
-
+---
 
 #### Badge
 
@@ -857,7 +858,7 @@ const badgeLarge = ui.CreateBadge("large", "5");
 ui.AddBadge(parentElement, "large", "99+");
 ```
 
-
+---
 
 ### Display & Layout
 
@@ -872,7 +873,7 @@ card.SetContent("Content");
 card.SetOnClick(() => {});
 ```
 
-
+---
 
 #### List & ListItem
 
@@ -887,7 +888,7 @@ item.SetTrailingContent(someElement);
 list.element.appendChild(item.element);
 ```
 
-
+---
 
 #### Divider
 
@@ -897,7 +898,7 @@ Horizontal divider line.
 const divider = ui.CreateDivider();
 ```
 
-
+---
 
 ### Progress & Badges
 
@@ -911,7 +912,7 @@ prog.SetProgress(50);   // 0‑100
 prog.SetProgress(null); // indeterminate
 ```
 
-
+---
 
 #### CircularProgress
 
@@ -923,7 +924,7 @@ prog.SetProgress(75);
 prog.SetProgress(null);
 ```
 
-
+---
 
 ## Utilities
 
@@ -961,14 +962,14 @@ Run the dev server:
 deno task dev
 ```
 
-
+---
 
 ## API Reference
 
 ### BaseElement API
 
 | Method | Description |
-|--|-|
+|--------|-------------|
 | `SetBackColor(color)` | Sets background color |
 | `SetBackAlpha(alpha)` | Sets opacity (0‑1 or 1‑256 inverted) |
 | `SetBackGradient(c1, c2?, c3?, options)` | Linear gradient |
@@ -998,7 +999,7 @@ deno task dev
 ### LayoutElement API
 
 | Method | Description |
-|--|-|
+|--------|-------------|
 | `AddChild(child, order?)` | Adds a child, optionally at index |
 | `RemoveChild(child)`, `DestroyChild(child)` | Removes child |
 | `ChildToFront(child)` | Brings to front (changes z‑order) |
@@ -1057,7 +1058,7 @@ interface Route {
 }
 ```
 
-
+---
 
 ## Example App (App.ts)
 
@@ -1077,7 +1078,7 @@ The included `App.ts` demonstrates nearly every component in a single page. It s
 
 It also includes lifecycle hooks `OnPause`, `OnResume`, `OnConfig`, and `OnBack`.
 
-
+---
 
 ## Conclusion
 
