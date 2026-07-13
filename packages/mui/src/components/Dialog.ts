@@ -186,6 +186,7 @@ export class Dialog extends OverlayElement {
 
   constructor(type: DialogType = "basic") {
     super("div", { scrim: true, dismissOnScrimClick: true, dismissOnEscape: true, exitAnimationMs: 0 });
+    this.SetScrimColor("rgba(0, 0, 0, 0.32)");
     this.type = type;
 
     this.element.className = `m3-dialog m3-dialog-${type} ` + dialogSva({ type });

@@ -112,6 +112,9 @@ export class SideSheet extends OverlayElement {
       exitAnimationMs: 300,
       mountToBody: type === "modal" 
     });
+    if (type === "modal") {
+      this.SetScrimColor("rgba(0, 0, 0, 0.32)");
+    }
     this.type = type;
     this.element.className = sheetSva({ type, open: false });
 

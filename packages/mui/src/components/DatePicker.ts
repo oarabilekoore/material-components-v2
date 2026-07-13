@@ -120,9 +120,13 @@ export class DatePicker extends OverlayElement {
   private gridEl: HTMLDivElement;
 
   constructor() {
-    super("div", { scrim: true, dismissOnScrimClick: true, dismissOnEscape: true });
+    super("div", {
+      scrim: true,
+      dismissOnScrimClick: true,
+      dismissOnEscape: true,
+    });
     this.element.className = "m3-datepicker " + pickerSva();
-
+    this.SetScrimColor("rgba(0, 0, 0, 0.32)");
     const today = new Date();
     this.currentYear = today.getFullYear();
     this.currentMonth = today.getMonth();
@@ -134,7 +138,11 @@ export class DatePicker extends OverlayElement {
 
     this.titleEl = document.createElement("div");
     this.titleEl.className = titleSva();
-    this.titleEl.textContent = today.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
+    this.titleEl.textContent = today.toLocaleDateString("en-US", {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+    });
     this.element.appendChild(this.titleEl);
 
     const navBar = document.createElement("div");
@@ -142,7 +150,7 @@ export class DatePicker extends OverlayElement {
 
     this.monthLabelEl = document.createElement("span");
     this.monthLabelEl.className = monthLabelSva();
-    
+
     const prevBtn = document.createElement("button");
     prevBtn.textContent = "◀";
     prevBtn.className = navBtnSva();
@@ -188,11 +196,22 @@ export class DatePicker extends OverlayElement {
   }
 
   private render() {
-    this.monthLabelEl.textContent = new Date(this.currentYear, this.currentMonth).toLocaleDateString("en-US", { month: "long", year: "numeric" });
+    this.monthLabelEl.textContent = new Date(
+      this.currentYear,
+      this.currentMonth,
+    ).toLocaleDateString("en-US", { month: "long", year: "numeric" });
     this.gridEl.innerHTML = "";
 
-    const firstDayIndex = new Date(this.currentYear, this.currentMonth, 1).getDay();
-    const numDays = new Date(this.currentYear, this.currentMonth + 1, 0).getDate();
+    const firstDayIndex = new Date(
+      this.currentYear,
+      this.currentMonth,
+      1,
+    ).getDay();
+    const numDays = new Date(
+      this.currentYear,
+      this.currentMonth + 1,
+      0,
+    ).getDate();
 
     for (let i = 0; i < firstDayIndex; i++) {
       this.gridEl.appendChild(document.createElement("div"));
@@ -202,15 +221,17 @@ export class DatePicker extends OverlayElement {
 
     for (let day = 1; day <= numDays; day++) {
       const dayEl = document.createElement("div");
-      
-      const isSelected = this.selectedDate !== null && 
-                         this.selectedDate.getDate() === day &&
-                         this.selectedDate.getMonth() === this.currentMonth &&
-                         this.selectedDate.getFullYear() === this.currentYear;
-                         
-      const isToday = today.getDate() === day &&
-                      today.getMonth() === this.currentMonth &&
-                      today.getFullYear() === this.currentYear;
+
+      const isSelected =
+        this.selectedDate !== null &&
+        this.selectedDate.getDate() === day &&
+        this.selectedDate.getMonth() === this.currentMonth &&
+        this.selectedDate.getFullYear() === this.currentYear;
+
+      const isToday =
+        today.getDate() === day &&
+        today.getMonth() === this.currentMonth &&
+        today.getFullYear() === this.currentYear;
 
       dayEl.className = daySva({ selected: isSelected, today: isToday });
       dayEl.textContent = String(day);
@@ -218,7 +239,10 @@ export class DatePicker extends OverlayElement {
 
       const selectDay = () => {
         this.selectedDate = new Date(this.currentYear, this.currentMonth, day);
-        this.titleEl.textContent = this.selectedDate.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
+        this.titleEl.textContent = this.selectedDate.toLocaleDateString(
+          "en-US",
+          { weekday: "short", month: "short", day: "numeric" },
+        );
         this.render();
         if (this.onSelectCallback) {
           this.onSelectCallback(this.selectedDate);

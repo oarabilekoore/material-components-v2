@@ -38,6 +38,7 @@ export class BottomSheet extends OverlayElement {
 
   constructor() {
     super("div", { scrim: true, dismissOnScrimClick: true, dismissOnEscape: true, exitAnimationMs: 300 });
+    this.SetScrimColor("rgba(0, 0, 0, 0.32)");
 
     this.element.className = "m3-bottom-sheet " + sheetSva();
 

@@ -99,6 +99,7 @@ export class TimePicker extends OverlayElement {
 
   constructor() {
     super("div", { scrim: true, dismissOnScrimClick: true, dismissOnEscape: true });
+    this.SetScrimColor("rgba(0, 0, 0, 0.32)");
     this.element.className = "m3-timepicker " + timePickerSva();
 
     const title = document.createElement("div");

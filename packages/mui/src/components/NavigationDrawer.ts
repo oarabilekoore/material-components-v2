@@ -81,6 +81,10 @@ export class NavigationDrawer extends OverlayElement {
       mountToBody: variant === "modal"
     });
 
+    if (variant === "modal") {
+      this.SetScrimColor("rgba(0, 0, 0, 0.32)");
+    }
+
     if (variant === "standard") {
       this.element.style.position = "relative";
       this.element.style.transform = "none";
