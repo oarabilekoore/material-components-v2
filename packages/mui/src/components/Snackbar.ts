@@ -1,4 +1,5 @@
 import { BaseElement } from "../../../core/src/elements/BaseElement.ts";
+import { Icon, Icons } from "../icons/Icon.ts";
 import { currentTheme } from "../theme.ts";
 import { attachRipple } from "../../../core/src/utils/ripple.ts";
 import { sva } from "../../../core/src/utils/sva.ts";
@@ -132,7 +133,7 @@ export class SnackbarManager {
 export class Snackbar extends BaseElement {
   private _duration: number = 4000;
 
-  constructor(message: string, action: string = "", onAction?: () => void) {
+  constructor(message: string, action: string = "", onAction?: () => void, showCloseIcon: boolean = false) {
     super("div");
     this.element.className = "m3-snackbar " + snackbarSva();
 
@@ -153,6 +154,17 @@ export class Snackbar extends BaseElement {
 
       attachRipple(actionBtn);
       this.element.appendChild(actionBtn);
+    }
+
+    if (showCloseIcon) {
+      const closeBtn = new Icon("close");
+      closeBtn.element.style.cursor = "pointer";
+      closeBtn.element.style.marginLeft = "8px";
+      closeBtn.element.style.color = "var(--md-inverse-on-surface)";
+      closeBtn.element.addEventListener("click", () => {
+        this.Hide();
+      });
+      this.element.appendChild(closeBtn.element);
     }
   }
 

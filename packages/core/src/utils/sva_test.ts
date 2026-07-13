@@ -1,7 +1,7 @@
-import { assertEquals } from "@std/assert";
+import { test, expect } from "bun:test";
 import { sva, styleObjectToCss, hashCode } from "./sva.ts";
 
-Deno.test("sva merges base and variants", () => {
+test("sva merges base and variants", () => {
   const mySva = sva({
     base: {
       display: "flex",
@@ -19,28 +19,28 @@ Deno.test("sva merges base and variants", () => {
   });
 
   const classRed = mySva();
-  assertEquals(typeof classRed, "string");
-  assertEquals(classRed.startsWith("m3-sva-"), true);
+  expect(typeof classRed).toBe("string");
+  expect(classRed.startsWith("m3-sva-")).toBe(true);
 
   const classBlue = mySva({ color: "blue" });
-  assertEquals(typeof classBlue, "string");
-  assertEquals(classBlue.startsWith("m3-sva-"), true);
+  expect(typeof classBlue).toBe("string");
+  expect(classBlue.startsWith("m3-sva-")).toBe(true);
   
   if (classRed === classBlue) {
     throw new Error("Hashes should differ for different style objects");
   }
 });
 
-Deno.test("styleObjectToCss formats camelCase and numbers", () => {
+test("styleObjectToCss formats camelCase and numbers", () => {
   const css = styleObjectToCss({
     zIndex: 10,
     backgroundColor: "green",
     borderRadius: 8,
   });
-  assertEquals(css, "z-index: 10; background-color: green; border-radius: 8px;");
+  expect(css).toBe("z-index: 10; background-color: green; border-radius: 8px;");
 });
 
-Deno.test("sva handles nested selectors and inserts rules", () => {
+test("sva handles nested selectors and inserts rules", () => {
   // Mock document and style sheet
   const cssRules: string[] = [];
   const mockSheet = {
@@ -75,10 +75,10 @@ Deno.test("sva handles nested selectors and inserts rules", () => {
     const baseRule = cssRules.find(r => r.startsWith(`.${className} {`));
     const hoverRule = cssRules.find(r => r.startsWith(`.${className}:hover {`));
 
-    assertEquals(!!baseRule, true, "Base rule should be inserted");
-    assertEquals(!!hoverRule, true, "Hover rule should be inserted");
-    assertEquals(baseRule?.includes("color: black;"), true);
-    assertEquals(hoverRule?.includes("color: red;"), true);
+    expect(!!baseRule).toBe(true);
+    expect(!!hoverRule).toBe(true);
+    expect(baseRule?.includes("color: black;")).toBe(true);
+    expect(hoverRule?.includes("color: red;")).toBe(true);
   } finally {
     delete (globalThis as any).document;
   }

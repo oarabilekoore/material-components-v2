@@ -3,6 +3,7 @@ import { BaseElement } from "../../../core/src/elements/BaseElement.ts";
 import { LayoutElement } from "../../../core/src/elements/Layout.ts";
 import { sva } from "../../../core/src/utils/sva.ts";
 import { attachRipple } from "../../../core/src/utils/ripple.ts";
+import { Badge } from "./Badge.ts";
 
 const fabContainerSva = sva({
   base: {
@@ -123,6 +124,7 @@ class NavigationRailItem extends BaseElement {
   private _labelEl: HTMLSpanElement;
   private _value: string;
   private _active: boolean = false;
+  private _badge?: Badge;
 
   constructor(iconNodes: SvgIconNode[], label: string, value: string) {
     super("div");
@@ -153,6 +155,24 @@ class NavigationRailItem extends BaseElement {
 
   GetValue(): string {
     return this._value;
+  }
+
+  SetBadge(badge: Badge | null): this {
+    if (this._badge) {
+      this._badge.Dispose();
+      this._badge = undefined;
+    }
+    if (badge) {
+      this._badge = badge;
+      this._iconContainer.style.position = "relative";
+      // Position badge in the top-right of the icon container
+      badge.element.style.position = "absolute";
+      badge.element.style.top = "0px";
+      badge.element.style.right = "0px";
+      badge.element.style.transform = "translate(50%, -25%)";
+      this._iconContainer.appendChild(badge.element);
+    }
+    return this;
   }
 }
 

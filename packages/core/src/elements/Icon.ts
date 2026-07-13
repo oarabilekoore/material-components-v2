@@ -11,7 +11,7 @@ export type IconSize = "small" | "medium" | "large" | number;
 export class Icon extends BaseElement {
   private svgElement: SVGSVGElement;
 
-  constructor(nodes: SvgIconNode[], size: IconSize = "medium") {
+  constructor(icon: string | SvgIconNode[], size: IconSize = "medium") {
     super("span");
     
     this.element.style.display = "inline-flex";
@@ -27,8 +27,7 @@ export class Icon extends BaseElement {
     this.svgElement.style.flexShrink = "0";
     this.svgElement.style.userSelect = "none";
     
-    this.renderNodes(nodes);
-    this.element.appendChild(this.svgElement as unknown as Node);
+    this.SetIcon(icon);
 
     this.SetIconSize(size);
   }
@@ -44,8 +43,21 @@ export class Icon extends BaseElement {
     }
   }
 
-  public SetIcon(nodes: SvgIconNode[]): this {
-    this.renderNodes(nodes);
+  public SetIcon(icon: string | SvgIconNode[]): this {
+    if (typeof icon === "string") {
+      this.element.textContent = icon;
+      this.element.classList.add("material-icons");
+      if (this.svgElement.parentNode === this.element) {
+        this.element.removeChild(this.svgElement);
+      }
+    } else {
+      this.element.textContent = "";
+      this.element.classList.remove("material-icons");
+      this.renderNodes(icon);
+      if (this.svgElement.parentNode !== this.element) {
+        this.element.appendChild(this.svgElement as unknown as Node);
+      }
+    }
     return this;
   }
 
@@ -63,6 +75,7 @@ export class Icon extends BaseElement {
     
     this.svgElement.setAttribute("width", px.toString());
     this.svgElement.setAttribute("height", px.toString());
+    this.element.style.fontSize = `${px}px`;
     return this;
   }
 

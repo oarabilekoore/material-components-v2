@@ -91,6 +91,27 @@ const titleSva = sva({
   },
 });
 
+const dialContainerSva = sva({
+  base: {
+    width: "256px",
+    height: "256px",
+    borderRadius: "50%",
+    backgroundColor: "var(--md-surface-variant)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    position: "relative",
+  },
+});
+
+const dialPlaceholderTextSva = sva({
+  base: {
+    color: "var(--md-on-surface-variant)",
+    fontSize: "14px",
+    textAlign: "center",
+  }
+});
+
 export class TimePicker extends OverlayElement {
   private hourField: HTMLInputElement;
   private minuteField: HTMLInputElement;
@@ -109,6 +130,31 @@ export class TimePicker extends OverlayElement {
 
     const inputRow = document.createElement("div");
     inputRow.className = inputContainerSva();
+    
+    const dialContainer = document.createElement("div");
+    dialContainer.className = dialContainerSva();
+    dialContainer.innerHTML = `<span class="${dialPlaceholderTextSva()}">Dial UI (Placeholder)</span>`;
+    dialContainer.style.display = "none";
+    
+    // mode toggle icon
+    const modeBtn = document.createElement("button");
+    modeBtn.style.cssText = "background: none; border: none; cursor: pointer; align-self: flex-start; padding: 12px; margin-left: -12px; margin-top: auto;";
+    modeBtn.innerHTML = `<span class="material-icons" style="color: var(--md-on-surface-variant)">schedule</span>`;
+    let isDialMode = false;
+    modeBtn.addEventListener("click", () => {
+      isDialMode = !isDialMode;
+      if (isDialMode) {
+        inputRow.style.display = "none";
+        dialContainer.style.display = "flex";
+        title.textContent = "Select time";
+        modeBtn.innerHTML = `<span class="material-icons" style="color: var(--md-on-surface-variant)">keyboard</span>`;
+      } else {
+        inputRow.style.display = "flex";
+        dialContainer.style.display = "none";
+        title.textContent = "Enter time";
+        modeBtn.innerHTML = `<span class="material-icons" style="color: var(--md-on-surface-variant)">schedule</span>`;
+      }
+    });
 
     this.hourField = document.createElement("input");
     this.hourField.className = fieldSva();
@@ -157,6 +203,8 @@ export class TimePicker extends OverlayElement {
     toggle.appendChild(pmBtn);
     inputRow.appendChild(toggle);
     this.element.appendChild(inputRow);
+    this.element.appendChild(dialContainer);
+    this.element.appendChild(modeBtn);
 
     this.hourField.addEventListener("input", () => this.validateHour());
     this.minuteField.addEventListener("input", () => this.validateMinute());

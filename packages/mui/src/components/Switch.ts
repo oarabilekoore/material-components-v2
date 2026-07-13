@@ -151,8 +151,8 @@ export class Switch extends BaseElement {
   private thumb: HTMLDivElement;
   private iconSpan: Icon;
   private _focused = false;
-  private _onIcon?: SvgIconNode[];
-  private _offIcon?: SvgIconNode[];
+  private _onIcon?: string | SvgIconNode[];
+  private _offIcon?: string | SvgIconNode[];
 
   constructor() {
     super("label");
@@ -209,9 +209,9 @@ export class Switch extends BaseElement {
     }
   }
 
-  SetIcons(onIcon: SvgIconNode[], offIcon?: SvgIconNode[]): this {
-    this._onIcon = onIcon;
-    this._offIcon = offIcon;
+  SetIcons(onIcon: string | SvgIconNode[], offIcon?: string | SvgIconNode[]): this {
+    this._onIcon = onIcon as any; // Type workaround for now since we pass to SetIcon
+    this._offIcon = offIcon as any;
     this.updateState(this.input.checked);
     return this;
   }

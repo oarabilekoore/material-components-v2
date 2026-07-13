@@ -2,7 +2,7 @@
 export * from "./theme.ts";
 
 // Components
-//
+export * from "./components/Shimmer.ts";
 export * from "./components/TextField.ts";
 export * from "./components/ExtendedFAB.ts";
 export * from "./components/Tabs.ts";
@@ -41,5 +41,3 @@ export * from "./components/SideSheet.ts";
 export * from "./components/BottomAppBar.ts";
 export * from "./components/SplitButton.ts";
 export * from "./components/Accordion.ts";
-
-

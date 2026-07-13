@@ -18,12 +18,13 @@ const listItemSva = sva({
     },
   },
   variants: {
-    hasSupportingText: {
-      true: { minHeight: "72px" },
-      false: { minHeight: "56px" }
+    lines: {
+      1: { minHeight: "56px" },
+      2: { minHeight: "72px" },
+      3: { minHeight: "88px" }
     }
   },
-  defaultVariants: { hasSupportingText: false }
+  defaultVariants: { lines: 1 }
 });
 
 const textContainerSva = sva({
@@ -46,7 +47,17 @@ const supportingTextSva = sva({
   base: {
     fontSize: "0.875rem",
     color: "var(--md-on-surface-variant)",
+    display: "-webkit-box",
+    WebkitBoxOrient: "vertical",
+    overflow: "hidden",
   },
+  variants: {
+    lines: {
+      1: { WebkitLineClamp: "1" },
+      2: { WebkitLineClamp: "2" }
+    }
+  },
+  defaultVariants: { lines: 1 }
 });
 
 const leadingContentSva = sva({
@@ -76,7 +87,7 @@ export class ListItem extends BaseElement {
 
   constructor(headline: string) {
     super("li");
-    this.element.className = "m3-list-item " + listItemSva({ hasSupportingText: false });
+    this.element.className = "m3-list-item " + listItemSva({ lines: 1 });
 
     attachRipple(this.element);
 
@@ -91,15 +102,15 @@ export class ListItem extends BaseElement {
     this.element.appendChild(textContainer);
   }
 
-  SetSupportingText(text: string): this {
+  SetSupportingText(text: string, lines: 1 | 2 = 1): this {
     if (!this._supportingText) {
       this._supportingText = document.createElement("span");
-      this._supportingText.className = supportingTextSva();
       const textContainer = this.element.querySelector("div");
       if (textContainer) textContainer.appendChild(this._supportingText);
     }
+    this._supportingText.className = supportingTextSva({ lines });
     this._supportingText.textContent = text;
-    this.element.className = "m3-list-item " + listItemSva({ hasSupportingText: true });
+    this.element.className = "m3-list-item " + listItemSva({ lines: lines === 1 ? 2 : 3 });
     return this;
   }
 
