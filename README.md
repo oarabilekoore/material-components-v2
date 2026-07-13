@@ -1,4 +1,4 @@
-# material-deno
+# material-components-v2
 
 A Material Design 3 UI framework for web apps, written in TypeScript, built on
 Deno + Vite. This repo is both the framework source (`packages/core`,

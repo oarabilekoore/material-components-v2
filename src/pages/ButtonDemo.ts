@@ -1,4 +1,4 @@
-import { CreateLayout, AddText } from "../../packages/core/index.ts";
+import { CreateLayout, AddText, SetTheme } from "../../packages/core/index.ts";
 import {
   AddButton,
   AddFab,
@@ -7,6 +7,8 @@ import {
   AddSegmentedButton,
   AddSplitButton,
   AddFabMenu,
+  AddShimmer,
+  SetThemeMode,
 } from "../../packages/mui/index.ts";
 import { Icons } from "../../packages/mui/src/icons/Icon.ts";
 
@@ -29,13 +31,15 @@ export function CreateButtonDemoPage() {
   AddText(btnSection, "Standard Buttons")
     .SetFontSize("1.5rem")
     .SetFontWeight(500);
-
+  const sh = AddShimmer(btnSection).SetAnimation("static");
   const btnRow = CreateLayout("Linear");
   btnRow.element.style.flexDirection = "row";
   btnRow.element.style.gap = "16px";
   btnRow.element.style.flexWrap = "wrap";
 
-  AddButton(btnRow, "Elevated", "elevated");
+  AddButton(btnRow, "Elevated", "elevated").SetOnTouch(() => {
+    SetThemeMode("dark");
+  });
   AddButton(btnRow, "Filled", "filled");
   AddButton(btnRow, "Tonal", "filled-tonal");
   AddButton(btnRow, "Outlined", "outlined");

@@ -51,12 +51,12 @@ const iconSva = sva({
       },
       false: {
         transform: "rotate(0)",
-      }
-    }
+      },
+    },
   },
   defaultVariants: {
     expanded: false,
-  }
+  },
 });
 
 const contentSva = sva({
@@ -75,12 +75,12 @@ const contentSva = sva({
       false: {
         gridTemplateRows: "0fr",
         visibility: "hidden",
-      }
-    }
+      },
+    },
   },
   defaultVariants: {
     expanded: false,
-  }
+  },
 });
 
 const contentInnerSva = sva({
@@ -114,19 +114,20 @@ export class Accordion extends BaseElement {
 
     this._header = document.createElement("div");
     this._header.className = headerSva();
-    
+
     this._titleSpan = document.createElement("span");
     this._titleSpan.className = titleSva();
     this._titleSpan.textContent = title;
-    
+
     this._iconSpan = document.createElement("span");
     this._iconSpan.className = iconSva({ expanded: false });
     this._iconSpan.textContent = "expand_more";
+    this._iconSpan.classList.add("material-icons");
 
     this._header.appendChild(this._titleSpan);
     this._header.appendChild(this._iconSpan);
     attachRipple(this._header);
-    
+
     this._header.addEventListener("click", () => this.Toggle());
 
     this.element.appendChild(this._header);
@@ -135,10 +136,10 @@ export class Accordion extends BaseElement {
 
     this._contentContainer = document.createElement("div");
     this._contentContainer.className = contentSva({ expanded: false });
-    
+
     this._contentInner = document.createElement("div");
     this._contentInner.className = contentInnerSva();
-    
+
     this._contentPadding = document.createElement("div");
     this._contentPadding.className = contentPaddingSva();
 
@@ -181,7 +182,7 @@ export class Accordion extends BaseElement {
     this._expanded.Set(!this._expanded.Get());
     return this;
   }
-  
+
   IsExpanded(): boolean {
     return this._expanded.Get();
   }
