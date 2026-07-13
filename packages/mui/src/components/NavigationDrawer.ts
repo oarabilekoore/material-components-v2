@@ -67,7 +67,7 @@ const drawerItemSva = sva({
 
 export class NavigationDrawer extends OverlayElement {
   private itemsEl: HTMLElement;
-  private items: Array<{ label: string; iconNodes?: SvgIconNode[] }> = [];
+  private items: Array<{ label: string; iconNodes?: SvgIconNode[] | string }> = [];
   private itemElements: HTMLElement[] = [];
   private selectedIndex: number = -1;
   private _onSelect?: (index: number, label: string) => void;
@@ -105,7 +105,7 @@ export class NavigationDrawer extends OverlayElement {
     });
   }
 
-  AddItem(label: string, iconNodes?: SvgIconNode[]): this {
+  AddItem(label: string, iconNodes?: SvgIconNode[] | string): this {
     this.items.push({ label, iconNodes });
     const item = document.createElement("div");
     item.className = drawerItemSva({ selected: false });

@@ -133,7 +133,7 @@ export class SearchBar extends BaseElement {
   constructor(
     placeholder = "Search...",
     variant: "filled" | "outlined" = "filled",
-    leadingIconNodes: SvgIconNode[] | null = Icons.search
+    leadingIconNodes: SvgIconNode[] | string | null = Icons.search
   ) {
     super("div");
     this.element.className = containerSva();
@@ -271,7 +271,7 @@ export class SearchBar extends BaseElement {
 function CreateSearchBar(
   placeholder = "Search...",
   variant: "filled" | "outlined" = "filled",
-  leadingIconNodes: SvgIconNode[] | null = Icons.search
+  leadingIconNodes: SvgIconNode[] | string | null = Icons.search
 ): SearchBar {
   return new SearchBar(placeholder, variant, leadingIconNodes);
 }
@@ -281,7 +281,7 @@ function CreateSearchBar(
  * @param {LayoutElement} parent - The parent parameter
  * @param {string} placeholder - The placeholder parameter
  * @param {"filled" | "outlined"} variant - The variant parameter
- * @param {SvgIconNode[] | null} leadingIconNodes - The icon nodes parameter
+ * @param {SvgIconNode[] | string | null} leadingIconNodes - The icon nodes parameter
  * @returns {SearchBar}
  *
  */
@@ -289,7 +289,7 @@ export function AddSearchBar(
   parent: LayoutElement,
   placeholder = "Search...",
   variant: "filled" | "outlined" = "filled",
-  leadingIconNodes: SvgIconNode[] | null = Icons.search
+  leadingIconNodes: SvgIconNode[] | string | null = Icons.search
 ): SearchBar {
   const bar = CreateSearchBar(placeholder, variant, leadingIconNodes);
   parent.AddChild(bar);

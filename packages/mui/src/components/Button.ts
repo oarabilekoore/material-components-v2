@@ -78,7 +78,7 @@ export class Button extends BaseElement {
   constructor(
     text: string,
     variant: ButtonVariant = "filled",
-    iconNodes?: SvgIconNode[],
+    iconNodes?: SvgIconNode[] | string,
   ) {
     super("button");
     this._variant = variant;
@@ -134,7 +134,7 @@ export class Button extends BaseElement {
 function CreateButton(
   text: string,
   variant: ButtonVariant = "filled",
-  iconNodes?: SvgIconNode[],
+  iconNodes?: SvgIconNode[] | string,
 ): Button {
   return new Button(text, variant, iconNodes);
 }
@@ -152,7 +152,7 @@ export function AddButton(
   parent: LayoutElement,
   text: string,
   variant: ButtonVariant = "filled",
-  iconNodes?: SvgIconNode[],
+  iconNodes?: SvgIconNode[] | string,
 ): Button {
   const btn = CreateButton(text, variant, iconNodes);
   parent.AddChild(btn);

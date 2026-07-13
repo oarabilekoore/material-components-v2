@@ -269,7 +269,7 @@ export class Dialog extends OverlayElement {
     }
   }
 
-  SetIcon(iconNodes: SvgIconNode[]): this {
+  SetIcon(iconNodes: SvgIconNode[] | string): this {
     if (this.type !== "basic") return this;
     if (!this._icon) {
       this._icon = new Icon(iconNodes);

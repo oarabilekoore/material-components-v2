@@ -117,7 +117,7 @@ const itemBtnSva = sva({
 });
 
 interface FabMenuItem {
-  iconNodes: SvgIconNode[];
+  iconNodes: SvgIconNode[] | string;
   label: string;
   callback: () => void;
   row: HTMLDivElement;
@@ -130,12 +130,12 @@ export class FabMenu extends BaseElement {
   private itemsContainer: HTMLDivElement;
   private items: FabMenuItem[] = [];
   private _isOpen: Signal<boolean>;
-  private openIconNodes: SvgIconNode[];
-  private closeIconNodes: SvgIconNode[];
+  private openIconNodes: SvgIconNode[] | string;
+  private closeIconNodes: SvgIconNode[] | string;
   private _currentToggleIcon?: Icon;
   private _morphShape = false;
 
-  constructor(openIconNodes: SvgIconNode[] = Icons.add, closeIconNodes: SvgIconNode[] = Icons.close) {
+  constructor(openIconNodes: SvgIconNode[] | string = Icons.add, closeIconNodes: SvgIconNode[] | string = Icons.close) {
     super("div");
     this.openIconNodes = openIconNodes;
     this.closeIconNodes = closeIconNodes;
@@ -212,7 +212,7 @@ export class FabMenu extends BaseElement {
     });
   }
 
-  AddItem(iconNodes: SvgIconNode[], label: string, callback: () => void): this {
+  AddItem(iconNodes: SvgIconNode[] | string, label: string, callback: () => void): this {
     const row = document.createElement("div");
     row.className = rowSva();
 
@@ -273,21 +273,21 @@ export class FabMenu extends BaseElement {
   }
 }
 
-function CreateFabMenu(openIconNodes: SvgIconNode[] = Icons.add, closeIconNodes: SvgIconNode[] = Icons.close): FabMenu {
+function CreateFabMenu(openIconNodes: SvgIconNode[] | string = Icons.add, closeIconNodes: SvgIconNode[] | string = Icons.close): FabMenu {
   return new FabMenu(openIconNodes, closeIconNodes);
 }
 
 /**
  * AddFabMenu function.
  * @param {import("../../../core/src/elements/Layout.ts").LayoutElement} parent - The parent parameter
- * @param {SvgIconNode[]} openIconNodes - The open icon nodes parameter
- * @param {SvgIconNode[]} closeIconNodes - The close icon nodes parameter
+ * @param {SvgIconNode[] | string} openIconNodes - The open icon nodes parameter
+ * @param {SvgIconNode[] | string} closeIconNodes - The close icon nodes parameter
  * @returns {FabMenu}
  */
 export function AddFabMenu(
   parent: import("../../../core/src/elements/Layout.ts").LayoutElement,
-  openIconNodes: SvgIconNode[] = Icons.add,
-  closeIconNodes: SvgIconNode[] = Icons.close,
+  openIconNodes: SvgIconNode[] | string = Icons.add,
+  closeIconNodes: SvgIconNode[] | string = Icons.close,
 ): FabMenu {
   const menu = CreateFabMenu(openIconNodes, closeIconNodes);
   parent.AddChild(menu);

@@ -114,7 +114,7 @@ export class ListItem extends BaseElement {
     return this;
   }
 
-  SetLeadingIcon(iconNodes: SvgIconNode[]): this {
+  SetLeadingIcon(iconNodes: SvgIconNode[] | string): this {
     if (!this._leadingContent) {
       this._leadingContent = document.createElement("span");
       this._leadingContent.className = leadingContentSva();

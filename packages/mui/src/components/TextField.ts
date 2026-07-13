@@ -305,7 +305,7 @@ export class TextField extends BaseElement {
     return this;
   }
 
-  SetLeadingIcon(iconNodes: SvgIconNode[]): this {
+  SetLeadingIcon(iconNodes: SvgIconNode[] | string): this {
     if (!this.leadingIconSpan) {
       this.leadingIconSpan = new Icon(iconNodes);
       this.leadingIconSpan.element.className = iconSva({ position: "leading", interactive: false });
@@ -322,7 +322,7 @@ export class TextField extends BaseElement {
     return this;
   }
 
-  SetTrailingIcon(iconNodes: SvgIconNode[], onClick?: () => void): this {
+  SetTrailingIcon(iconNodes: SvgIconNode[] | string, onClick?: () => void): this {
     if (!this.trailingIconSpan) {
       this.trailingIconSpan = new Icon(iconNodes);
       this.trailingIconSpan.element.className = iconSva({ position: "trailing", interactive: false });

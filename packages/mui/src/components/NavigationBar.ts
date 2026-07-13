@@ -78,7 +78,7 @@ class NavigationBarItem extends BaseElement {
   private _labelEl: HTMLSpanElement;
   private _value: string;
 
-  constructor(iconNodes: SvgIconNode[], label: string, value: string) {
+  constructor(iconNodes: SvgIconNode[] | string, label: string, value: string) {
     super("div");
     this._value = value;
     this.element.className = navBarItemSva();
@@ -120,7 +120,7 @@ export class NavigationBar extends BaseElement {
     }
   }
 
-  AddItem(iconNodes: SvgIconNode[], label: string, value: string): this {
+  AddItem(iconNodes: SvgIconNode[] | string, label: string, value: string): this {
     const item = new NavigationBarItem(iconNodes, label, value);
     const index = this._items.length;
 

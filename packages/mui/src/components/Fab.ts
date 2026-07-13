@@ -61,7 +61,7 @@ export class Fab extends BaseElement {
   private _icon: Icon;
   private _svaClass = "";
 
-  constructor(iconNodes: SvgIconNode[], size: FabSize = "medium") {
+  constructor(iconNodes: SvgIconNode[] | string, size: FabSize = "medium") {
     super("button");
     this._size = size;
     
@@ -81,7 +81,7 @@ export class Fab extends BaseElement {
     this.element.classList.add(this._svaClass);
   }
 
-  SetIcon(iconNodes: SvgIconNode[]): this {
+  SetIcon(iconNodes: SvgIconNode[] | string): this {
     this._icon.SetIcon(iconNodes);
     return this;
   }
@@ -96,7 +96,7 @@ export class Fab extends BaseElement {
   }
 }
 
-function CreateFab(iconNodes: SvgIconNode[], size: FabSize = "medium"): Fab {
+function CreateFab(iconNodes: SvgIconNode[] | string, size: FabSize = "medium"): Fab {
   return new Fab(iconNodes, size);
 }
 
@@ -110,7 +110,7 @@ function CreateFab(iconNodes: SvgIconNode[], size: FabSize = "medium"): Fab {
  */
 export function AddFab(
   parent: LayoutElement,
-  iconNodes: SvgIconNode[],
+  iconNodes: SvgIconNode[] | string,
   size: FabSize = "medium",
 ): Fab {
   const fab = CreateFab(iconNodes, size);

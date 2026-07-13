@@ -97,7 +97,7 @@ export class SplitButton extends BaseElement {
   private _secondaryBtn: HTMLButtonElement;
   private _iconSpan?: Icon;
 
-  constructor(label: string, variant: ButtonVariant = "filled", iconNodes?: SvgIconNode[]) {
+  constructor(label: string, variant: ButtonVariant = "filled", iconNodes?: SvgIconNode[] | string) {
     super("div");
     this.element.className = "m3-split-button " + containerSva({ variant });
 
@@ -141,7 +141,7 @@ export class SplitButton extends BaseElement {
   }
 }
 
-function CreateSplitButton(label: string, variant: ButtonVariant = "filled", iconNodes?: SvgIconNode[]): SplitButton {
+function CreateSplitButton(label: string, variant: ButtonVariant = "filled", iconNodes?: SvgIconNode[] | string): SplitButton {
   return new SplitButton(label, variant, iconNodes);
 }
 
@@ -154,7 +154,7 @@ function CreateSplitButton(label: string, variant: ButtonVariant = "filled", ico
  * @returns {SplitButton}
  *
  */
-export function AddSplitButton(parent: LayoutElement, label: string, variant: ButtonVariant = "filled", iconNodes?: SvgIconNode[]): SplitButton {
+export function AddSplitButton(parent: LayoutElement, label: string, variant: ButtonVariant = "filled", iconNodes?: SvgIconNode[] | string): SplitButton {
   const btn = CreateSplitButton(label, variant, iconNodes);
   parent.AddChild(btn);
   return btn;

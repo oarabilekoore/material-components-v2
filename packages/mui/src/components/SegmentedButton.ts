@@ -64,7 +64,7 @@ export class SegmentedButton extends BaseElement {
   private _onSelect: ((value: string) => void) | null = null;
   private _multiSelect: boolean = false;
   private _selectedIndices: Set<number> = new Set();
-  private _defaultIcons: (SvgIconNode[] | undefined)[] = [];
+  private _defaultIcons: (SvgIconNode[] | string | undefined)[] = [];
   private _icons: Icon[] = [];
 
   constructor(multiSelect: boolean = false) {
@@ -73,7 +73,7 @@ export class SegmentedButton extends BaseElement {
     this.element.className = "m3-segmented-button " + containerSva();
   }
 
-  AddSegment(label: string, iconNodes?: SvgIconNode[]): this {
+  AddSegment(label: string, iconNodes?: SvgIconNode[] | string): this {
     const btn = document.createElement("button");
     const index = this._buttons.length;
     btn.dataset.label = label;

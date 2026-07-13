@@ -256,7 +256,7 @@ export function AddTopAppBar(
 }
 
 function CreateAppBarIcon(
-  iconNameNodes: SvgIconNode[],
+  iconNameNodes: SvgIconNode[] | string,
   onClick?: () => void,
 ): BaseElement {
   const icon = new Icon(iconNameNodes);

@@ -73,7 +73,7 @@ export class Menu extends OverlayElement {
     return this;
   }
 
-  AddItem(label: string, callback: () => void, iconNodes?: SvgIconNode[]): this {
+  AddItem(label: string, callback: () => void, iconNodes?: SvgIconNode[] | string): this {
     const item = document.createElement("div");
     item.className = menuItemSva();
 

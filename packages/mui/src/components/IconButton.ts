@@ -28,7 +28,7 @@ const iconBtnSva = sva({
 export class IconButton extends BaseElement {
   private _icon: Icon;
 
-  constructor(iconNodes: SvgIconNode[]) {
+  constructor(iconNodes: SvgIconNode[] | string) {
     super("button");
     this.element.className = "m3-icon-button " + iconBtnSva();
 
@@ -43,7 +43,7 @@ export class IconButton extends BaseElement {
     return this;
   }
 
-  SetIcon(iconNodes: SvgIconNode[]): this {
+  SetIcon(iconNodes: SvgIconNode[] | string): this {
     this._icon.SetIcon(iconNodes);
     return this;
   }
@@ -53,20 +53,20 @@ export class IconButton extends BaseElement {
   }
 }
 
-function CreateIconButton(iconNodes: SvgIconNode[]): IconButton {
+function CreateIconButton(iconNodes: SvgIconNode[] | string): IconButton {
   return new IconButton(iconNodes);
 }
 
 /**
  * AddIconButton function.
  * @param {LayoutElement | BaseElement} parent - The parent parameter
- * @param {SvgIconNode[]} iconNodes - The icon nodes parameter
+ * @param {SvgIconNode[] | string} iconNodes - The icon nodes parameter
  * @returns {IconButton}
  *
  */
 export function AddIconButton(
   parent: LayoutElement,
-  iconNodes: SvgIconNode[],
+  iconNodes: SvgIconNode[] | string,
 ): IconButton {
   const btn = CreateIconButton(iconNodes);
   parent.AddChild(btn);

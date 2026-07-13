@@ -126,7 +126,7 @@ class NavigationRailItem extends BaseElement {
   private _active: boolean = false;
   private _badge?: Badge;
 
-  constructor(iconNodes: SvgIconNode[], label: string, value: string) {
+  constructor(iconNodes: SvgIconNode[] | string, label: string, value: string) {
     super("div");
     this._value = value;
     this.element.className = itemSva();
@@ -211,7 +211,7 @@ export class NavigationRail extends BaseElement {
     return this;
   }
 
-  AddItem(iconNodes: SvgIconNode[], label: string, value: string): this {
+  AddItem(iconNodes: SvgIconNode[] | string, label: string, value: string): this {
     const item = new NavigationRailItem(iconNodes, label, value);
     const index = this._items.length;
     

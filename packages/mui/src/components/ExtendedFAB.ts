@@ -87,7 +87,7 @@ export class ExtendedFab extends BaseElement {
   private _collapseOnOutsideClick = false;
 
   constructor(
-    iconNodes: SvgIconNode[],
+    iconNodes: SvgIconNode[] | string,
     label: string,
     size: FabSize = "medium",
   ) {
@@ -164,7 +164,7 @@ export class ExtendedFab extends BaseElement {
 }
 
 function CreateExtendedFab(
-  iconNodes: SvgIconNode[],
+  iconNodes: SvgIconNode[] | string,
   label: string,
   size: FabSize = "medium",
 ): ExtendedFab {
@@ -174,7 +174,7 @@ function CreateExtendedFab(
 /**
  * AddExtendedFab function.
  * @param {LayoutElement} parent - The parent parameter
- * @param {SvgIconNode[]} iconNodes - The icon nodes parameter
+ * @param {SvgIconNode[] | string} iconNodes - The icon nodes parameter
  * @param {string} label - The label parameter
  * @param {FabSize} size - The size parameter
  * @returns {ExtendedFab}
@@ -182,7 +182,7 @@ function CreateExtendedFab(
  */
 export function AddExtendedFab(
   parent: LayoutElement,
-  iconNodes: SvgIconNode[],
+  iconNodes: SvgIconNode[] | string,
   label: string,
   size: FabSize = "medium",
 ): ExtendedFab {
