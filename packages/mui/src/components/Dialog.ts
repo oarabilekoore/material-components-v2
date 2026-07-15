@@ -1,11 +1,8 @@
-import { Icon, SvgIconNode, Icons } from "../icons/Icon.ts";
-import { OverlayElement } from "../../../core/src/elements/Overlay.ts";
 import { BaseElement } from "../../../core/src/elements/BaseElement.ts";
-import { DialogType } from "../theme.ts";
+import { OverlayElement } from "../../../core/src/elements/Overlay.ts";
+import { Bind } from "../../../core/src/state/signals.ts";
 import { sva } from "../../../core/src/utils/sva.ts";
-import { Signal, CreateSignal, Bind } from "../../../core/src/state/signals.ts";
-
-// scrimSva removed because OverlayElement provides it
+import { DialogType } from "../theme.ts";
 
 const dialogSva = sva({
   base: {
@@ -185,11 +182,17 @@ export class Dialog extends OverlayElement {
   private _onCancel?: () => void;
 
   constructor(type: DialogType = "basic") {
-    super("div", { scrim: true, dismissOnScrimClick: true, dismissOnEscape: true, exitAnimationMs: 0 });
+    super("div", {
+      scrim: true,
+      dismissOnScrimClick: true,
+      dismissOnEscape: true,
+      exitAnimationMs: 0,
+    });
     this.SetScrimColor("rgba(0, 0, 0, 0.32)");
     this.type = type;
 
-    this.element.className = `m3-dialog m3-dialog-${type} ` + dialogSva({ type });
+    this.element.className =
+      `m3-dialog m3-dialog-${type} ` + dialogSva({ type });
     this.element.setAttribute("role", "dialog");
     this.element.setAttribute("aria-modal", "true");
 
@@ -197,10 +200,10 @@ export class Dialog extends OverlayElement {
       this.headerEl = document.createElement("div");
       this.headerEl.className = fullScreenHeaderSva();
 
-      const closeIconObj = new Icon(Icons.close);
-      closeIconObj.element.className = closeIconSva();
-      closeIconObj.element.addEventListener("click", () => this.Cancel());
-      const closeIcon = closeIconObj.element;
+      const closeIcon = document.createElement("span");
+      closeIcon.classList.add("material-icons", closeIconSva());
+      closeIcon.textContent = "close";
+      closeIcon.addEventListener("click", () => this.Cancel());
 
       this.titleEl = document.createElement("div");
       this.titleEl.className = fullScreenTitleSva();
@@ -237,12 +240,12 @@ export class Dialog extends OverlayElement {
     }
 
     this.ensureAnimations();
-    
+
     // Bind the Dialog's custom Cancel handler to the Overlay's dismiss logic
     this.SetOnDismiss(() => {
       if (this._onCancel) this._onCancel();
     });
-    
+
     Bind(this.GetIsOpenSignal(), (isOpen) => {
       if (isOpen) {
         if (typeof document !== "undefined") {
@@ -329,8 +332,6 @@ export class Dialog extends OverlayElement {
   private Cancel(): void {
     this.Dismiss();
   }
-
-
 
   override GetType(): string {
     return "Dialog";

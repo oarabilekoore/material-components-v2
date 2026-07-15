@@ -7,7 +7,7 @@ export type ObservableCallback<T> = (
 ) => void;
 
 /** Wraps an object so any property assignment notifies subscribers. */
-export function MakeObservable<T extends object>(
+export function Observaber<T extends object>(
   target: T,
 ): T & { Subscribe(callback: ObservableCallback<T>): Unsubscribe } {
   const subscribers = new Set<ObservableCallback<T>>();

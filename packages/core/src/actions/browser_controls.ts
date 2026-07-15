@@ -19,38 +19,10 @@ export function PlaySound(path: string) {
   new Audio(path).play();
 }
 
-/** Pauses execution for the given milliseconds. */
-export function Wait(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
 /** Enables or disables fullscreen ("kiosk") mode. */
 export function SetKioskMode(enable: boolean) {
   if (enable) document.documentElement.requestFullscreen();
   else if (document.fullscreenElement) document.exitFullscreen();
-}
-/** Info passed to a LoadScript callback once the script has loaded. */
-export interface ScriptLoadInfo {
-  isTrusted: boolean;
-}
-
-/** Dynamically loads a script by path/URL. Calls callback once loaded (or on failure). */
-export function LoadScript(
-  path: string,
-  callback?: (info: ScriptLoadInfo) => void,
-) {
-  const script = document.createElement("script");
-  script.src = path;
-
-  script.onload = (event) => {
-    callback?.({ isTrusted: event.isTrusted });
-  };
-
-  script.onerror = () => {
-    callback?.({ isTrusted: false });
-  };
-
-  document.head.appendChild(script);
 }
 
 /** Shares a file via the OS/browser share sheet, if supported. Returns false if unavailable or cancelled. */
@@ -68,14 +40,45 @@ export async function SendFile(
   }
 }
 
-/** Focuses the window, bringing it to the front. */
-export function ToFront() {
-  globalThis.focus();
-}
 /** Closes the window/tab. */
-export function Quit() {
+export function Exit() {
   globalThis.close();
 }
 
-/** Alias for Quit. */
-export const Exit = Quit;
+/** Reads text from the system clipboard. */
+export function GetClipboardText(): Promise<string> {
+  return navigator.clipboard.readText();
+}
+
+/** Writes text to the system clipboard. */
+export function SetClipboardText(text: string): Promise<void> {
+  return navigator.clipboard.writeText(text);
+}
+
+/** Vibrates the device for a duration (ms), or a pattern of on/off durations. */
+export function Vibrate(pattern: number | number[]): boolean {
+  return navigator.vibrate?.(pattern) ?? false;
+}
+
+/** Fires on any key press. */
+export function SetOnKey(
+  callback: (key: string, event: KeyboardEvent) => void,
+) {
+  globalThis.addEventListener("keydown", (e) => callback(e.key, e));
+}
+
+let wakeLock: WakeLockSentinel | null = null;
+
+/** Prevents the screen from locking/sleeping while enabled. */
+export async function PreventScreenLock(enable: boolean): Promise<void> {
+  if (enable) {
+    try {
+      wakeLock = await navigator.wakeLock.request("screen");
+    } catch {
+      wakeLock = null;
+    }
+  } else {
+    await wakeLock?.release();
+    wakeLock = null;
+  }
+}

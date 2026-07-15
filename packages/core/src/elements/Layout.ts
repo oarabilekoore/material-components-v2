@@ -1,4 +1,6 @@
 import { BaseElement } from "./BaseElement.ts";
+import { matchPathPrefix, getHashPathname, ensureAnchorIntercept } from "../router/router.ts";
+import type { RouteParams } from "../router/router.ts";
 
 export type LayoutType = "Linear" | "Absolute" | "Frame" | "Card";
 export type Orientation = "Horizontal" | "Vertical";
@@ -6,6 +8,14 @@ export type Orientation = "Horizontal" | "Vertical";
 export class LayoutElement extends BaseElement {
   private children: BaseElement[] = [];
   private layoutType: LayoutType;
+
+  private parentLayout?: LayoutElement;
+  private routePath?: string;
+  private routeParams: RouteParams = {};
+  private onRouteParamsCallback?: (params: RouteParams) => void;
+
+  private isOutlet = false;
+  private routedChildren: LayoutElement[] = [];
 
   constructor(type: LayoutType = "Linear") {
     super("div");
@@ -69,6 +79,15 @@ export class LayoutElement extends BaseElement {
       this.element.appendChild(child.element);
       this.children.push(child);
     }
+
+    if (child instanceof LayoutElement) {
+      child.parentLayout = this;
+      if (this.isOutlet && child.routePath !== undefined) {
+        this.registerRoutedChild(child);
+        this.updateOutlet();
+      }
+    }
+
     return this;
   }
 
@@ -171,11 +190,82 @@ export class LayoutElement extends BaseElement {
     return this;
   }
 
+  // ---------- Routing ----------
+
+  AddRoute(path: string = "/"): this {
+    this.routePath = path;
+    // Retroactive: if already mounted in an Outlet parent, self-register now.
+    if (this.parentLayout?.isOutlet) {
+      this.parentLayout.registerRoutedChild(this);
+      this.parentLayout.updateOutlet();
+    }
+    return this;
+  }
+
+  GetRouteParams(): RouteParams {
+    return this.routeParams;
+  }
+
+  SetOnRouteParams(callback: (params: RouteParams) => void): this {
+    this.onRouteParamsCallback = callback;
+    return this;
+  }
+
+  /** Walks up through routed ancestors, consuming each one's matched prefix, to find the pathname this layout's own Outlet should resolve against. */
+  private getLocalPathname(): string {
+    const chain: LayoutElement[] = [];
+    let cur = this.parentLayout;
+    while (cur) {
+      if (cur.routePath !== undefined) chain.unshift(cur);
+      cur = cur.parentLayout;
+    }
+    let pathname = getHashPathname();
+    for (const ancestor of chain) {
+      const match = matchPathPrefix(ancestor.routePath!, pathname);
+      if (!match) return "\0"; // sentinel: an ancestor no longer matches, nothing under it should show
+      pathname = match.remainder;
+    }
+    return pathname;
+  }
+
+  // ---------- Routing: outlet behavior on the parent ----------
+
+  private registerRoutedChild(child: LayoutElement) {
+    if (this.routedChildren.includes(child)) return;
+    this.routedChildren.push(child);
+    child.element.style.display = "none";
+  }
+
+  private updateOutlet() {
+    const pathname = this.getLocalPathname();
+    for (const child of this.routedChildren) {
+      const match = pathname === "\0" ? null : matchPathPrefix(child.routePath!, pathname);
+      // Leaf children must fully consume the path; branch (Outlet) children may leave a remainder.
+      const isValid = match && (child.isOutlet || match.remainder === "/");
+      if (isValid) {
+        child.element.style.display = "";
+        child.routeParams = match!.params;
+        child.onRouteParamsCallback?.(match!.params);
+      } else {
+        child.element.style.display = "none";
+      }
+      if (child.isOutlet) child.updateOutlet(); // cascade so nested Outlets re-resolve too
+    }
+  }
+
   // ---------- Options string (from CreateLayout's options param) ----------
 
   private applyOptions(options?: string) {
     if (!options) return;
     const opts = options.split(",").map((o) => o.trim());
+
+    if (opts.includes("Outlet")) {
+      this.isOutlet = true;
+      ensureAnchorIntercept();
+      if (typeof globalThis !== "undefined" && globalThis.addEventListener) {
+        globalThis.addEventListener("hashchange", () => this.updateOutlet());
+      }
+    }
 
     if (opts.includes("FillX") || opts.includes("FillXY"))
       this.element.style.width = "100%";

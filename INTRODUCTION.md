@@ -77,7 +77,7 @@ function OnStart() {
 
   ui.AddTopAppBar(root, "My App", "small");
 
-  const body = app.AddScroller(root, -1, -1, "FillX,Vertical");
+  const body = app.AddLayout(root, "Linear", "FillX,Vertical");
   ui.AddButton(body, "Click me", "filled").SetOnClick(() => {
     console.log("Hello!");
   });

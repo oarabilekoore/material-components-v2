@@ -8,7 +8,7 @@ export interface Signal<T> {
 }
 
 /** Creates a reactive value that notifies subscribers on change. */
-export function CreateSignal<T>(initialValue: T): Signal<T> {
+export function Signal<T>(initialValue: T): Signal<T> {
   let value = initialValue;
   const subscribers = new Set<(value: T) => void>();
 
@@ -27,6 +27,9 @@ export function CreateSignal<T>(initialValue: T): Signal<T> {
     },
   };
 }
+
+export const CreateSignal = Signal;
+
 /**
  * Bind function.
  * @param {Signal<T>} signal - The signal parameter
@@ -53,7 +56,7 @@ export function CreateComputed<T, R>(
   source: Signal<T>,
   compute: (value: T) => R,
 ): Signal<R> {
-  const computed = CreateSignal(compute(source.Get()));
+  const computed = Signal(compute(source.Get()));
   source.Subscribe((v) => computed.Set(compute(v)));
   return computed;
 }

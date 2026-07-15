@@ -10,6 +10,59 @@ export interface Route {
   render: (params: RouteParams) => BaseElement;
 }
 
+/** Matches a pattern against the start of a pathname. Returns matched params + unconsumed remainder, or null. */
+export function matchPathPrefix(pattern: string, pathname: string): { params: RouteParams; remainder: string } | null {
+  const patternSegments = pattern.split("/").filter(Boolean);
+  const pathSegments = pathname.split("/").filter(Boolean);
+  if (pathSegments.length < patternSegments.length) return null;
+
+  const params: RouteParams = {};
+  for (let i = 0; i < patternSegments.length; i++) {
+    const p = patternSegments[i];
+    const seg = pathSegments[i];
+    if (p.startsWith(":")) params[p.slice(1)] = seg;
+    else if (p !== seg) return null;
+  }
+
+  const remainder = "/" + pathSegments.slice(patternSegments.length).join("/");
+  return { params, remainder };
+}
+
+export function getHashPathname(): string {
+  if (typeof globalThis === "undefined" || !globalThis.location) return "/";
+  let hash = globalThis.location.hash;
+  if (hash.startsWith("#")) hash = hash.substring(1);
+  return hash || "/";
+}
+
+/** Navigates to a new path without a full page reload. Any mounted Outlet reacts via hashchange. */
+export function Navigate(path: string) {
+  if (typeof globalThis === "undefined" || !globalThis.location) return;
+  if (getHashPathname() !== path) {
+    globalThis.location.hash = path;
+  }
+}
+
+let anchorInterceptInstalled = false;
+
+/** Installs global anchor-click interception once, regardless of how many Outlets exist. */
+export function ensureAnchorIntercept() {
+  if (anchorInterceptInstalled || typeof globalThis === "undefined" || !globalThis.addEventListener) return;
+  anchorInterceptInstalled = true;
+  globalThis.document.addEventListener("click", (e) => {
+    const target = e.target as HTMLElement;
+    const anchor = target.closest("a");
+    if (anchor && anchor.href) {
+      const url = new URL(anchor.href, globalThis.location.href);
+      if (url.origin === globalThis.location.origin) {
+        e.preventDefault();
+        Navigate(url.pathname === "/" ? "/" : url.pathname);
+      }
+    }
+  });
+}
+
+
 /** Path-based client-side router rendering into an outlet Layout. */
 export class BrowserRouter {
   private routes: Route[] = [];
@@ -25,20 +78,7 @@ export class BrowserRouter {
 
     if (typeof globalThis !== "undefined" && globalThis.addEventListener) {
       globalThis.addEventListener("hashchange", () => this.render());
-      
-      // Intercept all local anchor link clicks
-      globalThis.document.addEventListener("click", (e) => {
-        const target = e.target as HTMLElement;
-        const anchor = target.closest("a");
-        if (anchor && anchor.href) {
-          const url = new URL(anchor.href, globalThis.location.href);
-          if (url.origin === globalThis.location.origin) {
-            e.preventDefault();
-            const targetPath = url.pathname === "/" ? "/" : url.pathname;
-            this.Navigate(targetPath);
-          }
-        }
-      });
+      ensureAnchorIntercept();
     }
 
     this.render();
@@ -70,10 +110,7 @@ export class BrowserRouter {
   }
 
   private getPathname(): string {
-    if (typeof globalThis === "undefined" || !globalThis.location) return "/";
-    let hash = globalThis.location.hash;
-    if (hash.startsWith("#")) hash = hash.substring(1);
-    return hash || "/";
+    return getHashPathname();
   }
 
   private render() {
@@ -91,10 +128,7 @@ export class BrowserRouter {
 
   /** Navigates to a new path without a full page reload. */
   Navigate(path: string) {
-    if (typeof globalThis === "undefined" || !globalThis.location) return;
-    if (this.getPathname() !== path) {
-      globalThis.location.hash = path;
-    }
+    Navigate(path);
   }
 
   /** Goes back in browser history. */

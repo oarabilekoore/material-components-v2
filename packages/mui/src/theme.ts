@@ -1,8 +1,8 @@
 import * as mcu from "@material/material-color-utilities";
 import { ThemeProvider as CoreThemeProvider } from "../../core/src/theme.ts";
-
 export type ThemeMode = "light" | "dark";
-export type ButtonVariant = "elevated" | "filled" | "filled-tonal" | "outlined" | "text";
+export type ButtonVariant =
+  "elevated" | "filled" | "filled-tonal" | "outlined" | "text";
 export type ButtonSize = "xs" | "s" | "m" | "l" | "xl";
 export type CardVariant = "elevated" | "filled" | "outlined";
 export type DialogType = "basic" | "full-screen";
@@ -98,12 +98,17 @@ function getRandomHexColor(): string {
   return color;
 }
 
-export function generateExpressiveTheme(seedColorHex: string, isDark: boolean, shapeScale: number = 1.0): M3ThemeTokens {
+export function generateExpressiveTheme(
+  seedColorHex: string,
+  isDark: boolean,
+  shapeScale: number = 1.0,
+): M3ThemeTokens {
   const argb = mcu.argbFromHex(seedColorHex);
   const hct = mcu.Hct.fromInt(argb);
   const scheme = new mcu.SchemeExpressive(hct, isDark, 0.0);
 
-  const getHex = (dynamicColor: any) => mcu.hexFromArgb(dynamicColor.getArgb(scheme));
+  const getHex = (dynamicColor: any) =>
+    mcu.hexFromArgb(dynamicColor.getArgb(scheme));
 
   const baseRadii = {
     shapeCornerExtraSmall: 4 * shapeScale,
@@ -122,7 +127,9 @@ export function generateExpressiveTheme(seedColorHex: string, isDark: boolean, s
     secondary: getHex(mcu.MaterialDynamicColors.secondary),
     onSecondary: getHex(mcu.MaterialDynamicColors.onSecondary),
     secondaryContainer: getHex(mcu.MaterialDynamicColors.secondaryContainer),
-    onSecondaryContainer: getHex(mcu.MaterialDynamicColors.onSecondaryContainer),
+    onSecondaryContainer: getHex(
+      mcu.MaterialDynamicColors.onSecondaryContainer,
+    ),
     tertiary: getHex(mcu.MaterialDynamicColors.tertiary),
     onTertiary: getHex(mcu.MaterialDynamicColors.onTertiary),
     tertiaryContainer: getHex(mcu.MaterialDynamicColors.tertiaryContainer),
@@ -158,7 +165,7 @@ export function generateExpressiveTheme(seedColorHex: string, isDark: boolean, s
     labelLarge: "500 0.875rem/1.5",
     labelMedium: "500 0.75rem/1.5",
     labelSmall: "500 0.6875rem/1.5",
-    
+
     ...baseRadii,
 
     spacingUnit: 4,
@@ -181,7 +188,7 @@ export function generateExpressiveTheme(seedColorHex: string, isDark: boolean, s
       slider: `${baseRadii.shapeCornerFull}px`,
       progress: `${baseRadii.shapeCornerFull}px`,
       badge: `${baseRadii.shapeCornerFull}px`,
-    }
+    },
   };
 }
 
@@ -231,7 +238,11 @@ export class MuiThemeProvider {
   }
 
   private generateTheme(): M3ThemeTokens {
-    const theme = generateExpressiveTheme(this.seedColor, this.mode === "dark", this.shapeScale);
+    const theme = generateExpressiveTheme(
+      this.seedColor,
+      this.mode === "dark",
+      this.shapeScale,
+    );
     if (this.customRadii) {
       theme.radii = { ...theme.radii!, ...this.customRadii };
     }
@@ -240,18 +251,19 @@ export class MuiThemeProvider {
 
   private applyToCore(): void {
     const coreProvider = CoreThemeProvider.getInstance();
-    
+
     // Flatten radii for CSS variables
     const flatTokens: Record<string, any> = { ...this.muiTokens };
     if (flatTokens.radii) {
       for (const [key, value] of Object.entries(flatTokens.radii)) {
-        flatTokens[`radii${key.charAt(0).toUpperCase() + key.slice(1)}`] = value;
+        flatTokens[`radii${key.charAt(0).toUpperCase() + key.slice(1)}`] =
+          value;
       }
       delete flatTokens.radii;
     }
-    
+
     coreProvider.setTheme(flatTokens, this.mode, "md");
-    
+
     if (typeof document !== "undefined") {
       document.body.style.backgroundColor = this.muiTokens.surface;
       document.body.style.color = this.muiTokens.onSurface;
@@ -266,8 +278,10 @@ export class MuiThemeProvider {
 
 export const currentTheme = new Proxy({} as M3ThemeTokens, {
   get(target, prop) {
-    return MuiThemeProvider.getInstance().getTheme()[prop as keyof M3ThemeTokens];
-  }
+    return MuiThemeProvider.getInstance().getTheme()[
+      prop as keyof M3ThemeTokens
+    ];
+  },
 });
 export const currentMode = "light";
 
