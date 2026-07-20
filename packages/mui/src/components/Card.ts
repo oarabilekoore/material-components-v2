@@ -1,5 +1,5 @@
 import { BaseElement } from "../../../core/src/elements/BaseElement.ts";
-import { LayoutElement } from "../../../core/src/elements/Layout.ts";
+import { LayoutElement, currentAutoBindTarget } from "../../../core/src/elements/Layout.ts";
 import { CardVariant } from "../theme.ts";
 import { sva } from "../../../core/src/utils/sva.ts";
 
@@ -51,7 +51,7 @@ const contentSva = sva({
   },
 });
 
-export class Card extends BaseElement {
+export class CardEl extends BaseElement {
   private headerEl: HTMLElement;
   private contentEl: HTMLElement;
   private _variant: CardVariant;
@@ -110,22 +110,23 @@ export class Card extends BaseElement {
   }
 }
 
-function CreateCard(variant: CardVariant = "elevated"): Card {
-  return new Card(variant);
+function CreateCard(variant: CardVariant = "elevated"): CardEl {
+  return new CardEl(variant);
 }
 
 /**
  * AddCard function.
  * @param {LayoutElement} parent - The parent parameter
  * @param {CardVariant} variant - The variant parameter
- * @returns {Card}
+ * @returns {CardEl}
  *
  */
-export function AddCard(
-  parent: LayoutElement,
-  variant: CardVariant = "elevated",
-): Card {
+export function Card(
+  variant: CardVariant = "elevated", bindOptions?: { into?: import("../../../core/src/elements/Layout.ts").LayoutElement }
+): CardEl {
   const card = CreateCard(variant);
-  parent.AddChild(card);
+  const parentTarget = bindOptions?.into ?? currentAutoBindTarget();
+      if (parentTarget) parentTarget._internalMount(card);
+      else document.body.appendChild(card.element);
   return card;
 }

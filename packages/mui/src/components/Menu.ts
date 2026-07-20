@@ -48,7 +48,7 @@ const menuItemSva = sva({
   },
 });
 
-export class Menu extends OverlayElement {
+export class MenuEl extends OverlayElement {
   private _items: HTMLDivElement[] = [];
 
   constructor() {
@@ -104,19 +104,17 @@ export class Menu extends OverlayElement {
   }
 }
 
-function CreateMenu(): Menu {
-  return new Menu();
+function CreateMenu(): MenuEl {
+  return new MenuEl();
 }
 
 /**
  * AddMenu function.
  * @param {import("../../../core/src/elements/Layout.ts").LayoutElement} parent - The parent parameter
- * @returns {Menu}
+ * @returns {MenuEl}
  */
-export function AddMenu(
-  parent: import("../../../core/src/elements/Layout.ts").LayoutElement,
-): Menu {
+export function Menu(
+): MenuEl {
   const menu = CreateMenu();
-  parent.AddChild(menu);
   return menu;
 }

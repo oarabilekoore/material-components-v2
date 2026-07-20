@@ -1,6 +1,6 @@
 import { Icon, SvgIconNode, Icons } from "../icons/Icon.ts";
 import { BaseElement } from "../../../core/src/elements/BaseElement.ts";
-import { LayoutElement } from "../../../core/src/elements/Layout.ts";
+import { LayoutElement, currentAutoBindTarget } from "../../../core/src/elements/Layout.ts";
 import { sva } from "../../../core/src/utils/sva.ts";
 import { attachRipple } from "../../../core/src/utils/ripple.ts";
 import { ButtonVariant } from "../theme.ts";
@@ -92,7 +92,7 @@ const secondaryActionSva = sva({
   }
 });
 
-export class SplitButton extends BaseElement {
+export class SplitButtonEl extends BaseElement {
   private _primaryBtn: HTMLButtonElement;
   private _secondaryBtn: HTMLButtonElement;
   private _iconSpan?: Icon;
@@ -141,8 +141,8 @@ export class SplitButton extends BaseElement {
   }
 }
 
-function CreateSplitButton(label: string, variant: ButtonVariant = "filled", iconNodes?: SvgIconNode[] | string): SplitButton {
-  return new SplitButton(label, variant, iconNodes);
+function CreateSplitButton(label: string, variant: ButtonVariant = "filled", iconNodes?: SvgIconNode[] | string): SplitButtonEl {
+  return new SplitButtonEl(label, variant, iconNodes);
 }
 
 /**
@@ -151,11 +151,13 @@ function CreateSplitButton(label: string, variant: ButtonVariant = "filled", ico
  * @param {string} label - The label parameter
  * @param {ButtonVariant} variant - The variant parameter
  * @param {string} icon - The icon parameter
- * @returns {SplitButton}
+ * @returns {SplitButtonEl}
  *
  */
-export function AddSplitButton(parent: LayoutElement, label: string, variant: ButtonVariant = "filled", iconNodes?: SvgIconNode[] | string): SplitButton {
+export function SplitButton(label: string, variant: ButtonVariant = "filled", iconNodes?: SvgIconNode[] | string, bindOptions?: { into?: import("../../../core/src/elements/Layout.ts").LayoutElement }): SplitButtonEl {
   const btn = CreateSplitButton(label, variant, iconNodes);
-  parent.AddChild(btn);
+  const parentTarget = bindOptions?.into ?? currentAutoBindTarget();
+      if (parentTarget) parentTarget._internalMount(btn);
+      else document.body.appendChild(btn.element);
   return btn;
 }

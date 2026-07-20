@@ -1,7 +1,7 @@
 import { BaseElement } from "./BaseElement.ts";
 
 /** A tappable button for interacting with the app. */
-export class ButtonElement extends BaseElement {
+export class ButtonElementEl extends BaseElement {
   constructor(text: string, width = -1, height = -1, options = "") {
     // Initialize the base HTML wrapper with a button element
     super("button");

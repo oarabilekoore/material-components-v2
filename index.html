@@ -36,36 +36,7 @@
 
 <body>
   <div id="root"></div>
-  <script type="module">
-    import handlers from "./src/App.tsx";
-
-    if (!handlers || typeof handlers.OnStart !== "function") {
-      console.error("OnStart not defined");
-    } else {
-      if (handlers.OnBack) {
-        history.pushState({__fpctSentinel: true}, "");
-        window.addEventListener("popstate", () => {
-          handlers.OnBack();
-          history.pushState({__fpctSentinel: true}, "");
-        });
-      }
-
-      if (handlers.OnPause || handlers.OnResume) {
-        document.addEventListener("visibilitychange", () => {
-          if (document.hidden) handlers.OnPause?.();
-          else handlers.OnResume?.();
-        });
-      }
-
-      if (handlers.OnConfig) {
-        window.addEventListener("resize", () => handlers.OnConfig());
-        screen.orientation?.addEventListener?.("change", () => handlers.OnConfig());
-      }
-
-      handlers.OnStart();
-      window.__fpctStarted = true;
-    }
-  </script>
+  <script type="module" src="./apps/demo/src/main.ts"></script>
 </body>
 
 </html>

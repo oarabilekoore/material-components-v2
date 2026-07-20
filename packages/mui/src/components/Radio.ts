@@ -1,5 +1,5 @@
 import { BaseElement } from "../../../core/src/elements/BaseElement.ts";
-import { LayoutElement } from "../../../core/src/elements/Layout.ts";
+import { LayoutElement, currentAutoBindTarget } from "../../../core/src/elements/Layout.ts";
 import { currentTheme } from "../theme.ts";
 import { sva } from "../../../core/src/utils/sva.ts";
 
@@ -27,7 +27,7 @@ const radioLabelSva = sva({
   },
 });
 
-export class Radio extends BaseElement {
+export class RadioEl extends BaseElement {
   private input: HTMLInputElement;
   private labelEl: HTMLSpanElement;
 
@@ -78,8 +78,8 @@ function CreateRadio(
   name: string,
   value: string,
   label: string = "",
-): Radio {
-  return new Radio(name, value, label);
+): RadioEl {
+  return new RadioEl(name, value, label);
 }
 
 /**
@@ -88,16 +88,17 @@ function CreateRadio(
  * @param {string} name - The name parameter
  * @param {string} value - The value parameter
  * @param {string} label - The label parameter
- * @returns {Radio}
+ * @returns {RadioEl}
  *
  */
-export function AddRadio(
-  parent: LayoutElement,
+export function Radio(
   name: string,
   value: string,
-  label: string = "",
-): Radio {
+  label: string = "", bindOptions?: { into?: import("../../../core/src/elements/Layout.ts").LayoutElement }
+): RadioEl {
   const radio = CreateRadio(name, value, label);
-  parent.AddChild(radio);
+  const parentTarget = bindOptions?.into ?? currentAutoBindTarget();
+      if (parentTarget) parentTarget._internalMount(radio);
+      else document.body.appendChild(radio.element);
   return radio;
 }

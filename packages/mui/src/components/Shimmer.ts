@@ -1,5 +1,5 @@
 import { BaseElement } from "../../../core/src/elements/BaseElement.ts";
-import { LayoutElement } from "../../../core/src/elements/Layout.ts";
+import { LayoutElement, currentAutoBindTarget } from "../../../core/src/elements/Layout.ts";
 import { sva } from "../../../core/src/utils/sva.ts";
 
 export type ShimmerShape = "rect" | "circle" | "text";
@@ -44,7 +44,7 @@ const sweepSva = sva({
  *  - "pulse"  the whole block fades opacity in/out (cheap, GPU-compositable)
  *  - "static" no animation at all (cheapest, best for prefers-reduced-motion or low-power devices)
  */
-export class Shimmer extends BaseElement {
+export class ShimmerEl extends BaseElement {
   private _sweep?: HTMLDivElement;
   private _shape: ShimmerShape;
   private _animation: ShimmerAnimation;
@@ -163,8 +163,8 @@ export class Shimmer extends BaseElement {
 function CreateShimmer(
   shape: ShimmerShape = "rect",
   animation: ShimmerAnimation = "wave",
-): Shimmer {
-  return new Shimmer(shape, animation);
+): ShimmerEl {
+  return new ShimmerEl(shape, animation);
 }
 
 /**
@@ -172,15 +172,16 @@ function CreateShimmer(
  * @param {LayoutElement} parent - The parent parameter
  * @param {ShimmerShape} shape - rect | circle | text (default: "rect")
  * @param {ShimmerAnimation} animation - wave | pulse | static (default: "wave")
- * @returns {Shimmer}
+ * @returns {ShimmerEl}
  *
  */
-export function AddShimmer(
-  parent: LayoutElement,
+export function Shimmer(
   shape: ShimmerShape = "rect",
-  animation: ShimmerAnimation = "wave",
-): Shimmer {
+  animation: ShimmerAnimation = "wave", bindOptions?: { into?: import("../../../core/src/elements/Layout.ts").LayoutElement }
+): ShimmerEl {
   const shimmer = CreateShimmer(shape, animation);
-  parent.AddChild(shimmer);
+  const parentTarget = bindOptions?.into ?? currentAutoBindTarget();
+      if (parentTarget) parentTarget._internalMount(shimmer);
+      else document.body.appendChild(shimmer.element);
   return shimmer;
 }

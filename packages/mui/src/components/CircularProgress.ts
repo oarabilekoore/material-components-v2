@@ -1,5 +1,5 @@
 import { BaseElement } from "../../../core/src/elements/BaseElement.ts";
-import { LayoutElement } from "../../../core/src/elements/Layout.ts";
+import { LayoutElement, currentAutoBindTarget } from "../../../core/src/elements/Layout.ts";
 import { sva } from "../../../core/src/utils/sva.ts";
 
 const progressSva = sva({
@@ -32,7 +32,7 @@ const circleSva = sva({
   },
 });
 
-export class CircularProgress extends BaseElement {
+export class CircularProgressEl extends BaseElement {
   private _svg: SVGSVGElement;
   private _circle: SVGCircleElement;
   private _circumference: number = 125.6;
@@ -106,18 +106,20 @@ export class CircularProgress extends BaseElement {
   }
 }
 
-function CreateCircularProgress(): CircularProgress {
-  return new CircularProgress();
+function CreateCircularProgress(): CircularProgressEl {
+  return new CircularProgressEl();
 }
 
 /**
  * AddCircularProgress function.
  * @param {LayoutElement} parent - The parent parameter
- * @returns {CircularProgress}
+ * @returns {CircularProgressEl}
  *
  */
-export function AddCircularProgress(parent: LayoutElement): CircularProgress {
+export function CircularProgress(bindOptions?: { into?: import("../../../core/src/elements/Layout.ts").LayoutElement }): CircularProgressEl {
   const progress = CreateCircularProgress();
-  parent.AddChild(progress);
+  const parentTarget = bindOptions?.into ?? currentAutoBindTarget();
+      if (parentTarget) parentTarget._internalMount(progress);
+      else document.body.appendChild(progress.element);
   return progress;
 }

@@ -65,7 +65,7 @@ const drawerItemSva = sva({
   defaultVariants: { selected: false }
 });
 
-export class NavigationDrawer extends OverlayElement {
+export class NavigationDrawerEl extends OverlayElement {
   private itemsEl: HTMLElement;
   private items: Array<{ label: string; iconNodes?: SvgIconNode[] | string }> = [];
   private itemElements: HTMLElement[] = [];
@@ -157,21 +157,19 @@ export class NavigationDrawer extends OverlayElement {
 
 function CreateNavigationDrawer(
   variant: DrawerVariant = "modal",
-): NavigationDrawer {
-  return new NavigationDrawer(variant);
+): NavigationDrawerEl {
+  return new NavigationDrawerEl(variant);
 }
 
 /**
  * AddNavigationDrawer function.
  * @param {import("../../../core/src/elements/Layout.ts").LayoutElement} parent - The parent parameter
  * @param {DrawerVariant} variant - The variant parameter
- * @returns {NavigationDrawer}
+ * @returns {NavigationDrawerEl}
  */
-export function AddNavigationDrawer(
-  parent: import("../../../core/src/elements/Layout.ts").LayoutElement,
+export function NavigationDrawer(
   variant: DrawerVariant = "modal",
-): NavigationDrawer {
+): NavigationDrawerEl {
   const drawer = CreateNavigationDrawer(variant);
-  parent.AddChild(drawer);
   return drawer;
 }

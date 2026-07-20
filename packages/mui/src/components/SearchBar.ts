@@ -1,6 +1,6 @@
 import { Icon, SvgIconNode, Icons } from "../icons/Icon.ts";
 import { BaseElement } from "../../../core/src/elements/BaseElement.ts";
-import { LayoutElement } from "../../../core/src/elements/Layout.ts";
+import { LayoutElement, currentAutoBindTarget } from "../../../core/src/elements/Layout.ts";
 import { sva } from "../../../core/src/utils/sva.ts";
 import { attachRipple } from "../../../core/src/utils/ripple.ts";
 
@@ -121,7 +121,7 @@ const iconSva = sva({
   }
 });
 
-export class SearchBar extends BaseElement {
+export class SearchBarEl extends BaseElement {
   private inputEl: HTMLInputElement;
   private popupEl: HTMLDivElement;
   private barEl: HTMLDivElement;
@@ -272,8 +272,8 @@ function CreateSearchBar(
   placeholder = "Search...",
   variant: "filled" | "outlined" = "filled",
   leadingIconNodes: SvgIconNode[] | string | null = Icons.search
-): SearchBar {
-  return new SearchBar(placeholder, variant, leadingIconNodes);
+): SearchBarEl {
+  return new SearchBarEl(placeholder, variant, leadingIconNodes);
 }
 
 /**
@@ -282,16 +282,17 @@ function CreateSearchBar(
  * @param {string} placeholder - The placeholder parameter
  * @param {"filled" | "outlined"} variant - The variant parameter
  * @param {SvgIconNode[] | string | null} leadingIconNodes - The icon nodes parameter
- * @returns {SearchBar}
+ * @returns {SearchBarEl}
  *
  */
-export function AddSearchBar(
-  parent: LayoutElement,
+export function SearchBar(
   placeholder = "Search...",
   variant: "filled" | "outlined" = "filled",
-  leadingIconNodes: SvgIconNode[] | string | null = Icons.search
-): SearchBar {
+  leadingIconNodes: SvgIconNode[] | string | null = Icons.search, bindOptions?: { into?: import("../../../core/src/elements/Layout.ts").LayoutElement }
+): SearchBarEl {
   const bar = CreateSearchBar(placeholder, variant, leadingIconNodes);
-  parent.AddChild(bar);
+  const parentTarget = bindOptions?.into ?? currentAutoBindTarget();
+      if (parentTarget) parentTarget._internalMount(bar);
+      else document.body.appendChild(bar.element);
   return bar;
 }

@@ -1,6 +1,6 @@
 import { Icon, SvgIconNode, Icons } from "../icons/Icon.ts";
 import { BaseElement } from "../../../core/src/elements/BaseElement.ts";
-import { LayoutElement } from "../../../core/src/elements/Layout.ts";
+import { LayoutElement, currentAutoBindTarget } from "../../../core/src/elements/Layout.ts";
 import { ButtonVariant } from "../theme.ts";
 import { sva } from "../../../core/src/utils/sva.ts";
 
@@ -71,7 +71,7 @@ const buttonSva = sva({
   },
 });
 
-export class Button extends BaseElement {
+export class ButtonEl extends BaseElement {
   private _variant: ButtonVariant;
   private _svaClass = "";
 
@@ -135,8 +135,8 @@ function CreateButton(
   text: string,
   variant: ButtonVariant = "filled",
   iconNodes?: SvgIconNode[] | string,
-): Button {
-  return new Button(text, variant, iconNodes);
+): ButtonEl {
+  return new ButtonEl(text, variant, iconNodes);
 }
 
 /**
@@ -145,16 +145,17 @@ function CreateButton(
  * @param {string} text - The text parameter
  * @param {ButtonVariant} variant - The variant parameter
  * @param {string} options - The options parameter
- * @returns {Button}
+ * @returns {ButtonEl}
  *
  */
-export function AddButton(
-  parent: LayoutElement,
+export function Button(
   text: string,
   variant: ButtonVariant = "filled",
-  iconNodes?: SvgIconNode[] | string,
-): Button {
+  iconNodes?: SvgIconNode[] | string, bindOptions?: { into?: import("../../../core/src/elements/Layout.ts").LayoutElement }
+): ButtonEl {
   const btn = CreateButton(text, variant, iconNodes);
-  parent.AddChild(btn);
+  const parentTarget = bindOptions?.into ?? currentAutoBindTarget();
+      if (parentTarget) parentTarget._internalMount(btn);
+      else document.body.appendChild(btn.element);
   return btn;
 }

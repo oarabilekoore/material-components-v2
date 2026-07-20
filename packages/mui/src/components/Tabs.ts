@@ -1,5 +1,5 @@
 import { BaseElement } from "../../../core/src/elements/BaseElement.ts";
-import { LayoutElement } from "../../../core/src/elements/Layout.ts";
+import { LayoutElement, currentAutoBindTarget } from "../../../core/src/elements/Layout.ts";
 import { currentTheme } from "../theme.ts";
 import { Signal, CreateSignal, Bind } from "../../../core/src/state/signals.ts";
 import { sva } from "../../../core/src/utils/sva.ts";
@@ -60,7 +60,7 @@ const tabBtnSva = sva({
   },
 });
 
-export class Tabs extends BaseElement {
+export class TabsEl extends BaseElement {
   private variant: TabsVariant;
   private tabButtons: HTMLButtonElement[] = [];
   private indicator: HTMLDivElement;
@@ -126,22 +126,23 @@ export class Tabs extends BaseElement {
   }
 }
 
-function CreateTabs(variant: TabsVariant = "primary"): Tabs {
-  return new Tabs(variant);
+function CreateTabs(variant: TabsVariant = "primary"): TabsEl {
+  return new TabsEl(variant);
 }
 
 /**
  * AddTabs function.
  * @param {LayoutElement} parent - The parent parameter
  * @param {TabsVariant} variant - The variant parameter
- * @returns {Tabs}
+ * @returns {TabsEl}
  *
  */
-export function AddTabs(
-  parent: LayoutElement,
-  variant: TabsVariant = "primary",
-): Tabs {
+export function Tabs(
+  variant: TabsVariant = "primary", bindOptions?: { into?: import("../../../core/src/elements/Layout.ts").LayoutElement }
+): TabsEl {
   const tabs = CreateTabs(variant);
-  parent.AddChild(tabs);
+  const parentTarget = bindOptions?.into ?? currentAutoBindTarget();
+      if (parentTarget) parentTarget._internalMount(tabs);
+      else document.body.appendChild(tabs.element);
   return tabs;
 }

@@ -1,5 +1,5 @@
 import { BaseElement } from "../../../core/src/elements/BaseElement.ts";
-import { LayoutElement } from "../../../core/src/elements/Layout.ts";
+import { LayoutElement, currentAutoBindTarget } from "../../../core/src/elements/Layout.ts";
 import { sva } from "../../../core/src/utils/sva.ts";
 
 const indicatorSva = sva({
@@ -35,7 +35,7 @@ const circleSva = sva({
   },
 });
 
-export class LoadingIndicator extends BaseElement {
+export class LoadingIndicatorEl extends BaseElement {
   private _svg: SVGSVGElement;
   private _circle: SVGCircleElement;
 
@@ -85,12 +85,14 @@ export class LoadingIndicator extends BaseElement {
   }
 }
 
-export function CreateLoadingIndicator(): LoadingIndicator {
-  return new LoadingIndicator();
+export function CreateLoadingIndicator(): LoadingIndicatorEl {
+  return new LoadingIndicatorEl();
 }
 
-export function AddLoadingIndicator(parent: LayoutElement): LoadingIndicator {
+export function LoadingIndicator(bindOptions?: { into?: import("../../../core/src/elements/Layout.ts").LayoutElement }): LoadingIndicatorEl {
   const indicator = CreateLoadingIndicator();
-  parent.AddChild(indicator);
+  const parentTarget = bindOptions?.into ?? currentAutoBindTarget();
+      if (parentTarget) parentTarget._internalMount(indicator);
+      else document.body.appendChild(indicator.element);
   return indicator;
 }

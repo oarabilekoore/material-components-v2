@@ -1,5 +1,5 @@
 import { BaseElement } from "../../../core/src/elements/BaseElement.ts";
-import { LayoutElement } from "../../../core/src/elements/Layout.ts";
+import { LayoutElement, currentAutoBindTarget } from "../../../core/src/elements/Layout.ts";
 import { sva } from "../../../core/src/utils/sva.ts";
 
 const dividerSva = sva({
@@ -12,7 +12,7 @@ const dividerSva = sva({
   },
 });
 
-export class Divider extends BaseElement {
+export class DividerEl extends BaseElement {
   constructor() {
     super("hr");
     this.element.className = "m3-divider " + dividerSva();
@@ -23,18 +23,20 @@ export class Divider extends BaseElement {
   }
 }
 
-function CreateDivider(): Divider {
-  return new Divider();
+function CreateDivider(): DividerEl {
+  return new DividerEl();
 }
 
 /**
  * AddDivider function.
  * @param {LayoutElement} parent - The parent parameter
- * @returns {Divider}
+ * @returns {DividerEl}
  *
  */
-export function AddDivider(parent: LayoutElement): Divider {
+export function Divider(bindOptions?: { into?: import("../../../core/src/elements/Layout.ts").LayoutElement }): DividerEl {
   const divider = CreateDivider();
-  parent.AddChild(divider);
+  const parentTarget = bindOptions?.into ?? currentAutoBindTarget();
+      if (parentTarget) parentTarget._internalMount(divider);
+      else document.body.appendChild(divider.element);
   return divider;
 }

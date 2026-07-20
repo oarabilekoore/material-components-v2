@@ -1,19 +1,19 @@
 import { BaseElement } from "../../../core/src/elements/BaseElement.ts";
 import { LayoutElement } from "../../../core/src/elements/Layout.ts";
-import { TextField } from "./TextField.ts";
-import { DatePicker } from "./DatePicker.ts";
+import { TextFieldEl } from "./TextField.ts";
+import { DatePickerEl } from "./DatePicker.ts";
 import { Icons } from "../icons/Icon.ts";
 
-export class DockedDatePicker extends BaseElement {
-  private _textField: TextField;
-  private _datePicker: DatePicker;
+export class DockedDatePickerEl extends BaseElement {
+  private _textField: TextFieldEl;
+  private _datePicker: DatePickerEl;
 
   constructor() {
     super("div");
     this.element.style.position = "relative";
     this.element.style.display = "inline-flex";
 
-    this._textField = new TextField("Date", "outlined", Icons.calendar_today);
+    this._textField = new TextFieldEl("Date", "outlined");
     
     // We open the date picker when the text field or icon is clicked
     this._textField.element.addEventListener("click", () => {
@@ -24,7 +24,7 @@ export class DockedDatePicker extends BaseElement {
 
     this.element.appendChild(this._textField.element);
 
-    this._datePicker = new DatePicker();
+    this._datePicker = new DatePickerEl();
     this._datePicker.SetScrimColor("transparent"); // docked picker doesn't use dark scrim
 
     this._datePicker.SetOnSelect((date) => {
@@ -34,7 +34,7 @@ export class DockedDatePicker extends BaseElement {
   }
 
   SetDate(date: Date): this {
-    this._datePicker.SetDate(date);
+    // this._datePicker.SetDate(date);
     this._textField.SetValue(date.toLocaleDateString());
     return this;
   }
@@ -44,12 +44,11 @@ export class DockedDatePicker extends BaseElement {
   }
 }
 
-export function CreateDockedDatePicker(): DockedDatePicker {
-  return new DockedDatePicker();
+export function CreateDockedDatePicker(): DockedDatePickerEl {
+  return new DockedDatePickerEl();
 }
 
-export function AddDockedDatePicker(parent: LayoutElement): DockedDatePicker {
+export function DockedDatePicker(): DockedDatePickerEl {
   const picker = CreateDockedDatePicker();
-  parent.AddChild(picker);
   return picker;
 }

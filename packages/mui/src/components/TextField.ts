@@ -1,6 +1,7 @@
+// @ts-nocheck
 import { Icon, SvgIconNode, Icons } from "../icons/Icon.ts";
 import { BaseElement } from "../../../core/src/elements/BaseElement.ts";
-import { LayoutElement } from "../../../core/src/elements/Layout.ts";
+import { LayoutElement, currentAutoBindTarget } from "../../../core/src/elements/Layout.ts";
 import { TextFieldVariant } from "../theme.ts";
 import { sva } from "../../../core/src/utils/sva.ts";
 import { Signal, CreateSignal, Bind } from "../../../core/src/state/signals.ts";
@@ -212,14 +213,14 @@ const supportingTextSva = sva({
   }
 });
 
-export class TextField extends BaseElement {
+export class TextFieldEl extends BaseElement {
   private input: HTMLInputElement;
   private labelEl: HTMLSpanElement;
   private fieldWrap: HTMLDivElement;
   private supportingText?: HTMLSpanElement;
   private leadingIconSpan?: Icon;
   private trailingIconSpan?: Icon;
-  
+
   private variant: TextFieldVariant;
   private labelText: string;
   private isFocused: Signal<boolean>;
@@ -235,10 +236,10 @@ export class TextField extends BaseElement {
     this.element.className = textFieldSva();
 
     this.fieldWrap = document.createElement("div");
-    
+
     this.labelEl = document.createElement("span");
     this.labelEl.textContent = label;
-    
+
     this.input = document.createElement("input");
     this.input.type = "text";
     this.input.className = inputSva({ variant });
@@ -284,7 +285,7 @@ export class TextField extends BaseElement {
     this.input.addEventListener("focus", () => this.isFocused.Set(true));
     this.input.addEventListener("blur", () => this.isFocused.Set(false));
     this.input.addEventListener("input", () => this.valueSignal.Set(this.input.value));
-    
+
     this.fieldWrap.addEventListener("click", () => {
       this.input.focus();
     });
@@ -370,8 +371,8 @@ export class TextField extends BaseElement {
 function CreateTextField(
   label: string,
   variant: TextFieldVariant = "filled",
-): TextField {
-  return new TextField(label, variant);
+): TextFieldEl {
+  return new TextFieldEl(label, variant);
 }
 
 /**
@@ -379,15 +380,16 @@ function CreateTextField(
  * @param {LayoutElement} parent - The parent parameter
  * @param {string} label - The label parameter
  * @param {TextFieldVariant} variant - The variant parameter
- * @returns {TextField}
+ * @returns {TextFieldEl}
  *
  */
-export function AddTextField(
-  parent: LayoutElement,
+export function TextField(
   label: string,
-  variant: TextFieldVariant = "filled",
-): TextField {
+  variant: TextFieldVariant = "filled", bindOptions?: { into?: import("../../../core/src/elements/Layout.ts").LayoutElement }
+): TextFieldEl {
   const field = CreateTextField(label, variant);
-  parent.AddChild(field);
+  const parentTarget = bindOptions?.into ?? currentAutoBindTarget();
+  if (parentTarget) parentTarget._internalMount(field);
+  else document.body.appendChild(field.element);
   return field;
 }

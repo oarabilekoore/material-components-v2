@@ -1,7 +1,7 @@
 import { Icon, SvgIconNode, Icons } from "../icons/Icon.ts";
 import { BaseElement } from "../../../core/src/elements/BaseElement.ts";
 import { currentTheme } from "../theme.ts";
-import { List } from "./List.ts";
+import { ListEl } from "./List.ts";
 import { attachRipple } from "../../../core/src/utils/ripple.ts";
 import { sva } from "../../../core/src/utils/sva.ts";
 
@@ -78,7 +78,7 @@ const trailingContentSva = sva({
   },
 });
 
-export class ListItem extends BaseElement {
+export class ListItemEl extends BaseElement {
   private _headline: HTMLSpanElement;
   private _supportingText: HTMLSpanElement | null = null;
   private _leadingContent: HTMLElement | null = null;
@@ -149,19 +149,33 @@ export class ListItem extends BaseElement {
   }
 }
 
-function CreateListItem(headline: string): ListItem {
-  return new ListItem(headline);
+function CreateListItem(headline: string): ListItemEl {
+  return new ListItemEl(headline);
 }
 
 /**
  * AddListItem function.
- * @param {List} parent - The parent parameter
  * @param {string} headline - The headline parameter
- * @returns {ListItem}
+ * @param {string} [supportingText] - The supporting text
+ * @param {SvgIconNode[] | string} [iconNodes] - Optional icon
+ * @param {Object} [bindOptions] - Bind options
+ * @returns {ListItemEl}
  *
  */
-export function AddListItem(parent: List, headline: string): ListItem {
+import { currentAutoBindTarget } from "../../../core/src/elements/index.ts";
+
+export function ListItem(
+  headline: string,
+  supportingText?: string,
+  iconNodes?: import("../icons/Icon.ts").SvgIconNode[] | string,
+  bindOptions?: { into?: import("../../../core/src/elements/Layout.ts").LayoutElement }
+): ListItemEl {
   const item = CreateListItem(headline);
-  parent.AddChild(item);
+  if (supportingText) item.SetSupportingText(supportingText);
+  if (iconNodes) item.SetLeadingIcon(iconNodes);
+  const parentTarget = bindOptions?.into ?? currentAutoBindTarget();
+  if (parentTarget) {
+    parentTarget._internalMount(item);
+  }
   return item;
 }

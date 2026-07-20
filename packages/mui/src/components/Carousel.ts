@@ -1,5 +1,5 @@
 import { BaseElement } from "../../../core/src/elements/BaseElement.ts";
-import { LayoutElement } from "../../../core/src/elements/Layout.ts";
+import { LayoutElement, currentAutoBindTarget } from "../../../core/src/elements/Layout.ts";
 import { sva } from "../../../core/src/utils/sva.ts";
 
 const carouselSva = sva({
@@ -61,7 +61,7 @@ function injectCarouselStyle() {
   }
 }
 
-export class Carousel extends BaseElement {
+export class CarouselEl extends BaseElement {
   private _layout: "multi-browse" | "uncontained" | "hero";
 
   constructor(layout: "multi-browse" | "uncontained" | "hero" = "multi-browse") {
@@ -101,19 +101,21 @@ export class Carousel extends BaseElement {
   }
 }
 
-function CreateCarousel(layout: "multi-browse" | "uncontained" | "hero" = "multi-browse"): Carousel {
-  return new Carousel(layout);
+function CreateCarousel(layout: "multi-browse" | "uncontained" | "hero" = "multi-browse"): CarouselEl {
+  return new CarouselEl(layout);
 }
 
 /**
  * AddCarousel function.
  * @param {LayoutElement} parent - The parent parameter
  * @param {"multi-browse" | "uncontained" | "hero"} layout - The layout parameter
- * @returns {Carousel}
+ * @returns {CarouselEl}
  *
  */
-export function AddCarousel(parent: LayoutElement, layout: "multi-browse" | "uncontained" | "hero" = "multi-browse"): Carousel {
+export function Carousel(layout: "multi-browse" | "uncontained" | "hero" = "multi-browse", bindOptions?: { into?: import("../../../core/src/elements/Layout.ts").LayoutElement }): CarouselEl {
   const carousel = CreateCarousel(layout);
-  parent.AddChild(carousel);
+  const parentTarget = bindOptions?.into ?? currentAutoBindTarget();
+      if (parentTarget) parentTarget._internalMount(carousel);
+      else document.body.appendChild(carousel.element);
   return carousel;
 }

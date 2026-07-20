@@ -1,7 +1,7 @@
 import { BaseElement } from "../../../core/src/elements/BaseElement.ts";
 import { BadgeVariant } from "../theme.ts";
 import { sva } from "../../../core/src/utils/sva.ts";
-import { LayoutElement } from "../../../core/src/elements/Layout.ts";
+import { LayoutElement, currentAutoBindTarget } from "../../../core/src/elements/Layout.ts";
 
 const badgeSva = sva({
   base: {
@@ -36,7 +36,7 @@ const badgeSva = sva({
   },
 });
 
-export class Badge extends BaseElement {
+export class BadgeEl extends BaseElement {
   private _variant: BadgeVariant;
   private _content: string;
   private _svaClass = "";
@@ -74,8 +74,8 @@ export class Badge extends BaseElement {
 function CreateBadge(
   variant: BadgeVariant = "small",
   content: string = "",
-): Badge {
-  return new Badge(variant, content);
+): BadgeEl {
+  return new BadgeEl(variant, content);
 }
 
 /**
@@ -83,15 +83,16 @@ function CreateBadge(
  * @param {HTMLElement} parent - The parent parameter
  * @param {BadgeVariant} variant - The variant parameter
  * @param {string} content - The content parameter
- * @returns {Badge}
+ * @returns {BadgeEl}
  *
  */
-export function AddBadge(
-  parent: LayoutElement,
+export function Badge(
   variant: BadgeVariant = "small",
-  content: string = "",
-): Badge {
+  content: string = "", bindOptions?: { into?: import("../../../core/src/elements/Layout.ts").LayoutElement }
+): BadgeEl {
   const badge = CreateBadge(variant, content);
-  parent.AddChild(badge);
+  const parentTarget = bindOptions?.into ?? currentAutoBindTarget();
+      if (parentTarget) parentTarget._internalMount(badge);
+      else document.body.appendChild(badge.element);
   return badge;
 }

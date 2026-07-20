@@ -1,6 +1,6 @@
 import { Icon, SvgIconNode, Icons } from "../icons/Icon.ts";
 import { BaseElement } from "../../../core/src/elements/BaseElement.ts";
-import { LayoutElement } from "../../../core/src/elements/Layout.ts";
+import { LayoutElement, currentAutoBindTarget } from "../../../core/src/elements/Layout.ts";
 import { TopAppBarVariant } from "../theme.ts";
 import { sva } from "../../../core/src/utils/sva.ts";
 
@@ -112,7 +112,7 @@ const appIconSva = sva({
   },
 });
 
-export class TopAppBar extends BaseElement {
+export class TopAppBarEl extends BaseElement {
   private _titleEl: HTMLSpanElement;
   private _navigationIconContainer: HTMLDivElement;
   private _actionsContainer: HTMLDivElement;
@@ -233,8 +233,8 @@ export class TopAppBar extends BaseElement {
 function CreateTopAppBar(
   title: string,
   variant: TopAppBarVariant = "small",
-): TopAppBar {
-  return new TopAppBar(title, variant);
+): TopAppBarEl {
+  return new TopAppBarEl(title, variant);
 }
 
 /**
@@ -242,16 +242,17 @@ function CreateTopAppBar(
  * @param {LayoutElement} parent - The parent parameter
  * @param {string} title - The title parameter
  * @param {TopAppBarVariant} variant - The variant parameter
- * @returns {TopAppBar}
+ * @returns {TopAppBarEl}
  *
  */
-export function AddTopAppBar(
-  parent: LayoutElement,
+export function TopAppBar(
   title: string,
-  variant: TopAppBarVariant = "small",
-): TopAppBar {
+  variant: TopAppBarVariant = "small", bindOptions?: { into?: import("../../../core/src/elements/Layout.ts").LayoutElement }
+): TopAppBarEl {
   const bar = CreateTopAppBar(title, variant);
-  parent.AddChild(bar);
+  const parentTarget = bindOptions?.into ?? currentAutoBindTarget();
+      if (parentTarget) parentTarget._internalMount(bar);
+      else document.body.appendChild(bar.element);
   return bar;
 }
 

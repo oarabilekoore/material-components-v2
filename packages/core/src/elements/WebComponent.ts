@@ -1,5 +1,6 @@
 import { BaseElement } from "./BaseElement.ts";
 import { LayoutElement } from "./Layout.ts";
+import { currentAutoBindTarget } from "./Layout.ts";
 
 /** Wraps a custom web component / custom element. */
 export class WebComponentElement extends BaseElement {
@@ -75,14 +76,15 @@ function CreateWebComponent(
 }
 
 /** Creates and adds a web component to a Layout. */
-export function AddWebComponent(
-  parent: LayoutElement,
+export function WebComponent(
   tagName: string,
   width = -1,
   height = -1,
-  options?: { px?: boolean },
+  options?: { px?: boolean }, bindOptions?: { into?: import("./Layout.ts").LayoutElement }
 ): WebComponentElement {
   const comp = CreateWebComponent(tagName, width, height, options);
-  parent.AddChild(comp);
+  const parentTarget = bindOptions?.into ?? currentAutoBindTarget();
+      if (parentTarget) parentTarget._internalMount(comp);
+      else document.body.appendChild(comp.element);
   return comp;
 }

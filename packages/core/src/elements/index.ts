@@ -1,18 +1,12 @@
-import { LayoutElement, LayoutType } from "./Layout.ts";
-import { ButtonElement } from "./Button.ts";
-import { TextElement } from "./Text.ts";
+import { LayoutElement, LayoutType, currentAutoBindTarget } from "./Layout.ts";
+export { currentAutoBindTarget };
+import { ButtonElementEl } from "./Button.ts";
+import { TextElementEl } from "./Text.ts";
 import { ImageElement } from "./Image.ts";
 import { VideoViewElement } from "./Video.ts";
 type SizeOptions = { px?: boolean };
 
 /** Creates a Layout container. */
-export function CreateLayout(
-  type: LayoutType = "Linear",
-  options?: string,
-): LayoutElement {
-  const layout = new LayoutElement(type);
-  return LayoutElement.withOptions(layout, options);
-}
 //** Mounts a Layout as the app's root, appending it to the #root element. */
 /**
  * MountRoot function.
@@ -31,16 +25,6 @@ export function MountRoot(layout: LayoutElement, rootId = "root"): boolean {
   return true;
 }
 
-/** Creates and adds a Layout to a parent Layout. */
-export function AddLayout(
-  parent: LayoutElement,
-  type: LayoutType = "Linear",
-  options?: string,
-): LayoutElement {
-  const layout = CreateLayout(type, options);
-  parent.AddChild(layout);
-  return layout;
-}
 
 /** Creates a Button. */
 export function CreateButton(
@@ -48,23 +32,25 @@ export function CreateButton(
   width = -1,
   height = -1,
   options?: SizeOptions,
-): ButtonElement {
-  const btn = new ButtonElement("button");
+): ButtonElementEl {
+  const btn = new ButtonElementEl("button");
   btn.SetText(text);
   if (width !== -1 || height !== -1) btn.SetSize(width, height, options);
   return btn;
 }
 
 /** Creates and adds a Button to a Layout. */
-export function AddButton(
-  parent: LayoutElement,
+export function Button(
   text: string,
   width = -1,
   height = -1,
   options?: SizeOptions,
-): ButtonElement {
+  bindOptions?: { into?: LayoutElement; mountTarget?: HTMLElement },
+): ButtonElementEl {
   const btn = CreateButton(text, width, height, options);
-  parent.AddChild(btn);
+  const parentTarget = bindOptions?.into ?? currentAutoBindTarget();
+  if (parentTarget) parentTarget._internalMount(btn);
+  else document.body.appendChild(btn.element);
   return btn;
 }
 
@@ -74,23 +60,25 @@ export function CreateText(
   width = -1,
   height = -1,
   options?: SizeOptions,
-): TextElement {
-  const txt = new TextElement("span");
+): TextElementEl {
+  const txt = new TextElementEl("span");
   txt.SetText(text);
   if (width !== -1 || height !== -1) txt.SetSize(width, height, options);
   return txt;
 }
 
 /** Creates and adds a Text label to a Layout. */
-export function AddText(
-  parent: LayoutElement,
+export function Text(
   text: string,
   width = -1,
   height = -1,
   options?: SizeOptions,
-): TextElement {
+  bindOptions?: { into?: LayoutElement; mountTarget?: HTMLElement },
+): TextElementEl {
   const txt = CreateText(text, width, height, options);
-  parent.AddChild(txt);
+  const parentTarget = bindOptions?.into ?? currentAutoBindTarget();
+  if (parentTarget) parentTarget._internalMount(txt);
+  else document.body.appendChild(txt.element);
   return txt;
 }
 
@@ -108,15 +96,17 @@ export function CreateImage(
 }
 
 /** Creates and adds an Image to a Layout. */
-export function AddImage(
-  parent: LayoutElement,
+export function Image(
   path: string,
   width = -1,
   height = -1,
   options?: SizeOptions,
+  bindOptions?: { into?: LayoutElement; mountTarget?: HTMLElement },
 ): ImageElement {
   const img = CreateImage(path, width, height, options);
-  parent.AddChild(img);
+  const parentTarget = bindOptions?.into ?? currentAutoBindTarget();
+  if (parentTarget) parentTarget._internalMount(img);
+  else document.body.appendChild(img.element);
   return img;
 }
 
@@ -135,14 +125,16 @@ export function CreateVideoView(
 }
 
 /** Creates and adds a VideoView to a Layout. */
-export function AddVideoView(
-  parent: LayoutElement,
+export function VideoView(
   path = "",
   width = -1,
   height = -1,
   options?: SizeOptions,
+  bindOptions?: { into?: LayoutElement; mountTarget?: HTMLElement },
 ): VideoViewElement {
   const video = CreateVideoView(path, width, height, options);
-  parent.AddChild(video);
+  const parentTarget = bindOptions?.into ?? currentAutoBindTarget();
+  if (parentTarget) parentTarget._internalMount(video);
+  else document.body.appendChild(video.element);
   return video;
 }

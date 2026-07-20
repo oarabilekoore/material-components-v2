@@ -26,7 +26,7 @@ const tooltipSva = sva({
   defaultVariants: { open: false }
 });
 
-export class Tooltip extends BaseElement {
+export class TooltipEl extends BaseElement {
   private _target: BaseElement;
   private _text: string;
   private _isOpen: Signal<boolean>;
@@ -73,17 +73,17 @@ export class Tooltip extends BaseElement {
   }
 }
 
-function CreateTooltip(target: BaseElement, text: string): Tooltip {
-  return new Tooltip(target, text);
+function CreateTooltip(target: BaseElement, text: string): TooltipEl {
+  return new TooltipEl(target, text);
 }
 
 /**
  * AddTooltip function.
  * @param {BaseElement} target - The target parameter
  * @param {string} text - The text parameter
- * @returns {Tooltip}
+ * @returns {TooltipEl}
  *
  */
-export function AddTooltip(target: BaseElement, text: string): Tooltip {
-  return new Tooltip(target, text);
+export function Tooltip(target: BaseElement, text: string): TooltipEl {
+  return new TooltipEl(target, text);
 }

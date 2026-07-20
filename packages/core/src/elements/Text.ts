@@ -1,7 +1,7 @@
 import { BaseElement } from "./BaseElement.ts";
 
 /** A control that displays text, e.g. labels. */
-export class TextElement extends BaseElement {
+export class TextElementEl extends BaseElement {
   /** Sets displayed text. */
   SetText(text: string) {
     this.element.textContent = text;

@@ -1,5 +1,5 @@
 import { BaseElement } from "../../../core/src/elements/BaseElement.ts";
-import { LayoutElement } from "../../../core/src/elements/Layout.ts";
+import { LayoutElement, currentAutoBindTarget } from "../../../core/src/elements/Layout.ts";
 import { currentTheme } from "../theme.ts";
 import { sva } from "../../../core/src/utils/sva.ts";
 
@@ -14,7 +14,7 @@ const listSva = sva({
   },
 });
 
-export class List extends BaseElement {
+export class ListEl extends BaseElement {
   constructor() {
     super("ul");
     this.element.className = "m3-list " + listSva();
@@ -34,18 +34,20 @@ export class List extends BaseElement {
   }
 }
 
-function CreateList(): List {
-  return new List();
+function CreateList(): ListEl {
+  return new ListEl();
 }
 
 /**
  * AddList function.
  * @param {LayoutElement} parent - The parent parameter
- * @returns {List}
+ * @returns {ListEl}
  *
  */
-export function AddList(parent: LayoutElement): List {
+export function List(bindOptions?: { into?: import("../../../core/src/elements/Layout.ts").LayoutElement }): ListEl {
   const list = CreateList();
-  parent.AddChild(list);
+  const parentTarget = bindOptions?.into ?? currentAutoBindTarget();
+      if (parentTarget) parentTarget._internalMount(list);
+      else document.body.appendChild(list.element);
   return list;
 }

@@ -1,6 +1,6 @@
 import { Icon, SvgIconNode, Icons } from "../icons/Icon.ts";
 import { BaseElement } from "../../../core/src/elements/BaseElement.ts";
-import { LayoutElement } from "../../../core/src/elements/Layout.ts";
+import { LayoutElement, currentAutoBindTarget } from "../../../core/src/elements/Layout.ts";
 import { currentTheme } from "../theme.ts";
 
 import { attachRipple } from "../../../core/src/utils/ripple.ts";
@@ -58,7 +58,7 @@ const segmentBtnSva = sva({
   },
 });
 
-export class SegmentedButton extends BaseElement {
+export class SegmentedButtonEl extends BaseElement {
   private _buttons: HTMLButtonElement[] = [];
   private _selectedIndex: number = -1;
   private _onSelect: ((value: string) => void) | null = null;
@@ -168,22 +168,23 @@ export class SegmentedButton extends BaseElement {
   }
 }
 
-function CreateSegmentedButton(multiSelect: boolean = false): SegmentedButton {
-  return new SegmentedButton(multiSelect);
+function CreateSegmentedButton(multiSelect: boolean = false): SegmentedButtonEl {
+  return new SegmentedButtonEl(multiSelect);
 }
 
 /**
  * AddSegmentedButton function.
  * @param {LayoutElement} parent - The parent parameter
  * @param {boolean} multiSelect - The multiSelect parameter
- * @returns {SegmentedButton}
+ * @returns {SegmentedButtonEl}
  *
  */
-export function AddSegmentedButton(
-  parent: LayoutElement,
-  multiSelect: boolean = false,
-): SegmentedButton {
+export function SegmentedButton(
+  multiSelect: boolean = false, bindOptions?: { into?: import("../../../core/src/elements/Layout.ts").LayoutElement }
+): SegmentedButtonEl {
   const seg = CreateSegmentedButton(multiSelect);
-  parent.AddChild(seg);
+  const parentTarget = bindOptions?.into ?? currentAutoBindTarget();
+      if (parentTarget) parentTarget._internalMount(seg);
+      else document.body.appendChild(seg.element);
   return seg;
 }

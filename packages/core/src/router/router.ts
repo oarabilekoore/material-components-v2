@@ -120,9 +120,9 @@ export class BrowserRouter {
     this.outlet.Clear();
 
     if (matched) {
-      this.outlet.AddChild(matched.route.render(matched.params));
+      this.outlet._internalMount(matched.route.render(matched.params));
     } else if (this.notFound) {
-      this.outlet.AddChild(this.notFound({}));
+      this.outlet._internalMount(this.notFound({}));
     }
   }
 

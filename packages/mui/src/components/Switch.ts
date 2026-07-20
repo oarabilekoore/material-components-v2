@@ -1,6 +1,6 @@
 import { Icon, SvgIconNode, Icons } from "../icons/Icon.ts";
 import { BaseElement } from "../../../core/src/elements/BaseElement.ts";
-import { LayoutElement } from "../../../core/src/elements/Layout.ts";
+import { LayoutElement, currentAutoBindTarget } from "../../../core/src/elements/Layout.ts";
 import { sva } from "../../../core/src/utils/sva.ts";
 
 const containerSva = sva({
@@ -145,7 +145,7 @@ const iconSva = sva({
   }
 });
 
-export class Switch extends BaseElement {
+export class SwitchEl extends BaseElement {
   private input: HTMLInputElement;
   private track: HTMLDivElement;
   private thumb: HTMLDivElement;
@@ -242,18 +242,20 @@ export class Switch extends BaseElement {
   }
 }
 
-function CreateSwitch(): Switch {
-  return new Switch();
+function CreateSwitch(): SwitchEl {
+  return new SwitchEl();
 }
 
 /**
  * AddSwitch function.
  * @param {LayoutElement} parent - The parent parameter
- * @returns {Switch}
+ * @returns {SwitchEl}
  *
  */
-export function AddSwitch(parent: LayoutElement): Switch {
+export function Switch(bindOptions?: { into?: import("../../../core/src/elements/Layout.ts").LayoutElement }): SwitchEl {
   const sw = CreateSwitch();
-  parent.AddChild(sw);
+  const parentTarget = bindOptions?.into ?? currentAutoBindTarget();
+      if (parentTarget) parentTarget._internalMount(sw);
+      else document.body.appendChild(sw.element);
   return sw;
 }

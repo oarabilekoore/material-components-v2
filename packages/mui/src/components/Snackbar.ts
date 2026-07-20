@@ -62,8 +62,8 @@ const actionBtnSva = sva({
 
 export class SnackbarManager {
   private static instance: SnackbarManager;
-  private queue: Snackbar[] = [];
-  private activeSnackbar: Snackbar | null = null;
+  private queue: SnackbarEl[] = [];
+  private activeSnackbar: SnackbarEl | null = null;
   private container: HTMLDivElement;
 
   private constructor() {
@@ -81,7 +81,7 @@ export class SnackbarManager {
     return SnackbarManager.instance;
   }
 
-  show(snackbar: Snackbar) {
+  show(snackbar: SnackbarEl) {
     if (this.activeSnackbar === snackbar || this.queue.includes(snackbar)) {
       return;
     }
@@ -130,7 +130,7 @@ export class SnackbarManager {
   }
 }
 
-export class Snackbar extends BaseElement {
+export class SnackbarEl extends BaseElement {
   private _duration: number = 4000;
 
   constructor(message: string, action: string = "", onAction?: () => void, showCloseIcon: boolean = false) {
@@ -196,8 +196,8 @@ function CreateSnackbar(
   message: string,
   action: string = "",
   onAction?: () => void,
-): Snackbar {
-  return new Snackbar(message, action, onAction);
+): SnackbarEl {
+  return new SnackbarEl(message, action, onAction);
 }
 
 /**
@@ -205,14 +205,14 @@ function CreateSnackbar(
  * @param {string} message - The message parameter
  * @param {string} action - The action parameter
  * @param {() => void} onAction - The onAction parameter
- * @returns {Snackbar}
+ * @returns {SnackbarEl}
  *
  */
-export function AddSnackbar(
+export function Snackbar(
   message: string,
   action: string = "",
   onAction?: () => void,
-): Snackbar {
+): SnackbarEl {
   // Snackbars aren't typically "added" to a parent layout element, they float.
   // But for consistency with the Add... pattern, we can just create and show it.
   const snackbar = CreateSnackbar(message, action, onAction);

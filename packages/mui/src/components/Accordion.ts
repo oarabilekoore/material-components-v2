@@ -1,5 +1,5 @@
 import { BaseElement } from "../../../core/src/elements/BaseElement.ts";
-import { LayoutElement } from "../../../core/src/elements/Layout.ts";
+import { LayoutElement, currentAutoBindTarget } from "../../../core/src/elements/Layout.ts";
 import { sva } from "../../../core/src/utils/sva.ts";
 import { attachRipple } from "../../../core/src/utils/ripple.ts";
 import { Signal, CreateSignal, Bind } from "../../../core/src/state/signals.ts";
@@ -99,7 +99,7 @@ const contentPaddingSva = sva({
   },
 });
 
-export class Accordion extends BaseElement {
+export class AccordionEl extends BaseElement {
   private _header: HTMLDivElement;
   private _titleSpan: HTMLSpanElement;
   private _iconSpan: HTMLSpanElement;
@@ -192,19 +192,21 @@ export class Accordion extends BaseElement {
   }
 }
 
-function CreateAccordion(title: string): Accordion {
-  return new Accordion(title);
+function CreateAccordion(title: string): AccordionEl {
+  return new AccordionEl(title);
 }
 
 /**
  * AddAccordion function.
  * @param {LayoutElement} parent - The parent parameter
  * @param {string} title - The title parameter
- * @returns {Accordion}
+ * @returns {AccordionEl}
  *
  */
-export function AddAccordion(parent: LayoutElement, title: string): Accordion {
+export function Accordion(title: string, bindOptions?: { into?: import("../../../core/src/elements/Layout.ts").LayoutElement }): AccordionEl {
   const acc = CreateAccordion(title);
-  parent.AddChild(acc);
+  const parentTarget = bindOptions?.into ?? currentAutoBindTarget();
+      if (parentTarget) parentTarget._internalMount(acc);
+      else document.body.appendChild(acc.element);
   return acc;
 }

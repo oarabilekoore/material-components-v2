@@ -1,5 +1,5 @@
 import { BaseElement } from "../../../core/src/elements/BaseElement.ts";
-import { LayoutElement } from "../../../core/src/elements/Layout.ts";
+import { LayoutElement, currentAutoBindTarget } from "../../../core/src/elements/Layout.ts";
 import { sva } from "../../../core/src/utils/sva.ts";
 
 const barSva = sva({
@@ -37,7 +37,7 @@ const fabContainerSva = sva({
   }
 });
 
-export class BottomAppBar extends BaseElement {
+export class BottomAppBarEl extends BaseElement {
   private _actionsContainer: HTMLDivElement;
   private _fabContainer: HTMLDivElement;
   private _fab?: BaseElement;
@@ -74,18 +74,20 @@ export class BottomAppBar extends BaseElement {
   }
 }
 
-function CreateBottomAppBar(): BottomAppBar {
-  return new BottomAppBar();
+function CreateBottomAppBar(): BottomAppBarEl {
+  return new BottomAppBarEl();
 }
 
 /**
  * AddBottomAppBar function.
  * @param {LayoutElement} parent - The parent parameter
- * @returns {BottomAppBar}
+ * @returns {BottomAppBarEl}
  *
  */
-export function AddBottomAppBar(parent: LayoutElement): BottomAppBar {
+export function BottomAppBar(bindOptions?: { into?: import("../../../core/src/elements/Layout.ts").LayoutElement }): BottomAppBarEl {
   const bar = CreateBottomAppBar();
-  parent.AddChild(bar);
+  const parentTarget = bindOptions?.into ?? currentAutoBindTarget();
+      if (parentTarget) parentTarget._internalMount(bar);
+      else document.body.appendChild(bar.element);
   return bar;
 }

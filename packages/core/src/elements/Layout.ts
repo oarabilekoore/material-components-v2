@@ -1,6 +1,17 @@
-import { BaseElement } from "./BaseElement.ts";
-import { matchPathPrefix, getHashPathname, ensureAnchorIntercept } from "../router/router.ts";
 import type { RouteParams } from "../router/router.ts";
+import { ensureAnchorIntercept, getHashPathname, matchPathPrefix } from "../router/router.ts";
+import { BaseElement } from "./BaseElement.ts";
+
+const _autoBindStack: LayoutElement[] = [];
+
+export function currentAutoBindTarget(): LayoutElement | undefined {
+  return _autoBindStack[_autoBindStack.length - 1];
+}
+
+export function EndAutoBind(): void {
+  _autoBindStack.pop();
+}
+
 
 export type LayoutType = "Linear" | "Absolute" | "Frame" | "Card";
 export type Orientation = "Horizontal" | "Vertical";
@@ -63,7 +74,7 @@ export class LayoutElement extends BaseElement {
 
   // ---------- Children ----------
 
-  AddChild(child: BaseElement, order?: number) {
+  _internalMount(child: BaseElement, order?: number) {
     if (this.layoutType === "Frame" || this.layoutType === "Card") {
       child.element.style.position = "absolute";
       child.element.style.top = "0";
@@ -233,7 +244,7 @@ export class LayoutElement extends BaseElement {
   private registerRoutedChild(child: LayoutElement) {
     if (this.routedChildren.includes(child)) return;
     this.routedChildren.push(child);
-    child.element.style.display = "none";
+    child._visibility.Vote("route", false);
   }
 
   private updateOutlet() {
@@ -243,11 +254,11 @@ export class LayoutElement extends BaseElement {
       // Leaf children must fully consume the path; branch (Outlet) children may leave a remainder.
       const isValid = match && (child.isOutlet || match.remainder === "/");
       if (isValid) {
-        child.element.style.display = "";
+        child._visibility.Vote("route", true);
         child.routeParams = match!.params;
         child.onRouteParamsCallback?.(match!.params);
       } else {
-        child.element.style.display = "none";
+        child._visibility.Vote("route", false);
       }
       if (child.isOutlet) child.updateOutlet(); // cascade so nested Outlets re-resolve too
     }
@@ -314,6 +325,9 @@ export class LayoutElement extends BaseElement {
   // ---------- Child-wide helpers ----------
 
   SetChildMargins(left = 0, top = 0, right = 0, bottom = 0, mode = "px") {
+    if (this.children.length === 0) {
+      console.warn("SetChildMargins called but layout has no children. If using Morph(), ensure children are added before morphing this property.");
+    }
     const u = mode === "px" ? "px" : mode;
     for (const child of this.children) {
       child.element.style.marginLeft = `${left}${u}`;
@@ -325,6 +339,9 @@ export class LayoutElement extends BaseElement {
   }
 
   SetChildTextSize(size: number, mode = "px") {
+    if (this.children.length === 0) {
+      console.warn("SetChildTextSize called but layout has no children. If using Morph(), ensure children are added before morphing this property.");
+    }
     for (const child of this.children) {
       child.element.style.fontSize = `${size}${mode}`;
     }
@@ -374,8 +391,30 @@ export class LayoutElement extends BaseElement {
     return this;
   }
 
-  static withOptions(layout: LayoutElement, options?: string): LayoutElement {
+  static withOptions(layout: LayoutElement, options?: string, route?: string): LayoutElement {
     layout["applyOptions"](options);
+    route ? layout.AddRoute(route) : null
     return layout;
   }
 }
+
+/** Creates a Layout container. */
+export function Layout(
+  type: LayoutType = "Linear",
+  options?: string, route?: string,
+  bindOptions?: { into?: LayoutElement; mountTarget?: HTMLElement },
+): LayoutElement {
+  const layout = new LayoutElement(type);
+  LayoutElement.withOptions(layout, options, route);
+
+  const parent = bindOptions?.into ?? currentAutoBindTarget();
+  if (parent) {
+    parent._internalMount(layout);
+  } else {
+    (bindOptions?.mountTarget ?? document.body).appendChild(layout.element);
+  }
+
+  _autoBindStack.push(layout);
+  return layout;
+}
+

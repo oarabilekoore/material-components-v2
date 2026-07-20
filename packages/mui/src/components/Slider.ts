@@ -1,5 +1,5 @@
 import { BaseElement } from "../../../core/src/elements/BaseElement.ts";
-import { LayoutElement } from "../../../core/src/elements/Layout.ts";
+import { LayoutElement, currentAutoBindTarget } from "../../../core/src/elements/Layout.ts";
 import { currentTheme, SliderStyle } from "../theme.ts";
 import { sva } from "../../../core/src/utils/sva.ts";
 import { Signal, CreateSignal, Bind } from "../../../core/src/state/signals.ts";
@@ -118,7 +118,7 @@ const valueLabelSva = sva({
   }
 });
 
-export class Slider extends BaseElement {
+export class SliderEl extends BaseElement {
   declare element: HTMLDivElement;
   private input: HTMLInputElement;
   private activeTrack: HTMLDivElement;
@@ -233,8 +233,8 @@ function CreateSlider(
   max = 100,
   value = 0,
   style: SliderStyle = "continuous",
-): Slider {
-  return new Slider(min, max, value, style);
+): SliderEl {
+  return new SliderEl(min, max, value, style);
 }
 
 /**
@@ -244,17 +244,18 @@ function CreateSlider(
  * @param {any} max - The max parameter
  * @param {any} value - The value parameter
  * @param {SliderStyle} style - The style parameter
- * @returns {Slider}
+ * @returns {SliderEl}
  *
  */
-export function AddSlider(
-  parent: LayoutElement,
+export function Slider(
   min = 0,
   max = 100,
   value = 0,
-  style: SliderStyle = "continuous",
-): Slider {
+  style: SliderStyle = "continuous", bindOptions?: { into?: import("../../../core/src/elements/Layout.ts").LayoutElement }
+): SliderEl {
   const slider = CreateSlider(min, max, value, style);
-  parent.AddChild(slider);
+  const parentTarget = bindOptions?.into ?? currentAutoBindTarget();
+      if (parentTarget) parentTarget._internalMount(slider);
+      else document.body.appendChild(slider.element);
   return slider;
 }

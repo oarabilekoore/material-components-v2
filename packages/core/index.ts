@@ -9,4 +9,5 @@ export * from "./src/router/router.ts";
 export * from "./src/utils/index.ts";
 export * from "./src/state/signals.ts";
 export * from "./src/state/observable.ts";
+export * from "./src/state/breakpoints.ts";
 export * from "./src/theme.ts";

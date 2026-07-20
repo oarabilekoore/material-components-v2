@@ -123,7 +123,7 @@ interface FabMenuItem {
   row: HTMLDivElement;
 }
 
-export class FabMenu extends BaseElement {
+export class FabMenuEl extends BaseElement {
   private toggleBtnObj: BaseElement;
   private toggleBtn: HTMLButtonElement;
   private toggleIcon: HTMLSpanElement;
@@ -273,8 +273,8 @@ export class FabMenu extends BaseElement {
   }
 }
 
-function CreateFabMenu(openIconNodes: SvgIconNode[] | string = Icons.add, closeIconNodes: SvgIconNode[] | string = Icons.close): FabMenu {
-  return new FabMenu(openIconNodes, closeIconNodes);
+function CreateFabMenu(openIconNodes: SvgIconNode[] | string = Icons.add, closeIconNodes: SvgIconNode[] | string = Icons.close): FabMenuEl {
+  return new FabMenuEl(openIconNodes, closeIconNodes);
 }
 
 /**
@@ -282,14 +282,12 @@ function CreateFabMenu(openIconNodes: SvgIconNode[] | string = Icons.add, closeI
  * @param {import("../../../core/src/elements/Layout.ts").LayoutElement} parent - The parent parameter
  * @param {SvgIconNode[] | string} openIconNodes - The open icon nodes parameter
  * @param {SvgIconNode[] | string} closeIconNodes - The close icon nodes parameter
- * @returns {FabMenu}
+ * @returns {FabMenuEl}
  */
-export function AddFabMenu(
-  parent: import("../../../core/src/elements/Layout.ts").LayoutElement,
+export function FabMenu(
   openIconNodes: SvgIconNode[] | string = Icons.add,
   closeIconNodes: SvgIconNode[] | string = Icons.close,
-): FabMenu {
+): FabMenuEl {
   const menu = CreateFabMenu(openIconNodes, closeIconNodes);
-  parent.AddChild(menu);
   return menu;
 }

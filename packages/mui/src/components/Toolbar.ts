@@ -1,5 +1,5 @@
 import { BaseElement } from "../../../core/src/elements/BaseElement.ts";
-import { LayoutElement } from "../../../core/src/elements/Layout.ts";
+import { LayoutElement, currentAutoBindTarget } from "../../../core/src/elements/Layout.ts";
 import { sva } from "../../../core/src/utils/sva.ts";
 
 const toolbarSva = sva({
@@ -16,7 +16,7 @@ const toolbarSva = sva({
   },
 });
 
-export class Toolbar extends BaseElement {
+export class ToolbarEl extends BaseElement {
   constructor() {
     super("div");
     this.element.className = "m3-toolbar " + toolbarSva();
@@ -32,12 +32,14 @@ export class Toolbar extends BaseElement {
   }
 }
 
-export function CreateToolbar(): Toolbar {
-  return new Toolbar();
+export function CreateToolbar(): ToolbarEl {
+  return new ToolbarEl();
 }
 
-export function AddToolbar(parent: LayoutElement): Toolbar {
+export function Toolbar(bindOptions?: { into?: import("../../../core/src/elements/Layout.ts").LayoutElement }): ToolbarEl {
   const toolbar = CreateToolbar();
-  parent.AddChild(toolbar);
+  const parentTarget = bindOptions?.into ?? currentAutoBindTarget();
+      if (parentTarget) parentTarget._internalMount(toolbar);
+      else document.body.appendChild(toolbar.element);
   return toolbar;
 }

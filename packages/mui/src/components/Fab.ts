@@ -1,6 +1,6 @@
 import { Icon, SvgIconNode, Icons } from "../icons/Icon.ts";
 import { BaseElement } from "../../../core/src/elements/BaseElement.ts";
-import { LayoutElement } from "../../../core/src/elements/Layout.ts";
+import { LayoutElement, currentAutoBindTarget } from "../../../core/src/elements/Layout.ts";
 import { FabSize } from "../theme.ts";
 import { sva } from "../../../core/src/utils/sva.ts";
 import { attachRipple } from "../../../core/src/utils/ripple.ts";
@@ -56,7 +56,7 @@ const iconSva = sva({
   },
 });
 
-export class Fab extends BaseElement {
+export class FabEl extends BaseElement {
   private _size: FabSize;
   private _icon: Icon;
   private _svaClass = "";
@@ -96,8 +96,8 @@ export class Fab extends BaseElement {
   }
 }
 
-function CreateFab(iconNodes: SvgIconNode[] | string, size: FabSize = "medium"): Fab {
-  return new Fab(iconNodes, size);
+function CreateFab(iconNodes: SvgIconNode[] | string, size: FabSize = "medium"): FabEl {
+  return new FabEl(iconNodes, size);
 }
 
 /**
@@ -105,15 +105,16 @@ function CreateFab(iconNodes: SvgIconNode[] | string, size: FabSize = "medium"):
  * @param {LayoutElement} parent - The parent parameter
  * @param {string} icon - The icon parameter
  * @param {FabSize} size - The size parameter
- * @returns {Fab}
+ * @returns {FabEl}
  *
  */
-export function AddFab(
-  parent: LayoutElement,
+export function Fab(
   iconNodes: SvgIconNode[] | string,
-  size: FabSize = "medium",
-): Fab {
+  size: FabSize = "medium", bindOptions?: { into?: import("../../../core/src/elements/Layout.ts").LayoutElement }
+): FabEl {
   const fab = CreateFab(iconNodes, size);
-  parent.AddChild(fab);
+  const parentTarget = bindOptions?.into ?? currentAutoBindTarget();
+      if (parentTarget) parentTarget._internalMount(fab);
+      else document.body.appendChild(fab.element);
   return fab;
 }

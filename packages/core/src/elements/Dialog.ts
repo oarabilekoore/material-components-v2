@@ -2,7 +2,7 @@ import { SimulateTouch } from "../actions";
 import { uniqueId } from "../utils";
 import { BaseElement } from "./BaseElement";
 
-export class Dialog extends BaseElement {
+export class DialogEl extends BaseElement {
   public primaryCommander: BaseElement | null = null;
   public secondaryCommander: BaseElement | null = null;
 

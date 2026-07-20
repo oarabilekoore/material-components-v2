@@ -112,7 +112,7 @@ const dialPlaceholderTextSva = sva({
   }
 });
 
-export class TimePicker extends OverlayElement {
+export class TimePickerEl extends OverlayElement {
   private hourField: HTMLInputElement;
   private minuteField: HTMLInputElement;
   private amPmSignal: Signal<"AM" | "PM">;
@@ -259,18 +259,17 @@ export class TimePicker extends OverlayElement {
   }
 }
 
-function CreateTimePicker(): TimePicker {
-  return new TimePicker();
+function CreateTimePicker(): TimePickerEl {
+  return new TimePickerEl();
 }
 
 /**
  * AddTimePicker function.
  * @param {LayoutElement} parent - The parent parameter
- * @returns {TimePicker}
+ * @returns {TimePickerEl}
  *
  */
-export function AddTimePicker(parent: LayoutElement): TimePicker {
+export function TimePicker(): TimePickerEl {
   const picker = CreateTimePicker();
-  parent.AddChild(picker);
   return picker;
 }

@@ -1,6 +1,6 @@
 import { Icon, SvgIconNode, Icons } from "../icons/Icon.ts";
 import { BaseElement } from "../../../core/src/elements/BaseElement.ts";
-import { LayoutElement } from "../../../core/src/elements/Layout.ts";
+import { LayoutElement, currentAutoBindTarget } from "../../../core/src/elements/Layout.ts";
 import { sva } from "../../../core/src/utils/sva.ts";
 import { attachRipple } from "../../../core/src/utils/ripple.ts";
 
@@ -25,7 +25,7 @@ const iconBtnSva = sva({
   },
 });
 
-export class IconButton extends BaseElement {
+export class IconButtonEl extends BaseElement {
   private _icon: Icon;
 
   constructor(iconNodes: SvgIconNode[] | string) {
@@ -53,22 +53,23 @@ export class IconButton extends BaseElement {
   }
 }
 
-function CreateIconButton(iconNodes: SvgIconNode[] | string): IconButton {
-  return new IconButton(iconNodes);
+function CreateIconButton(iconNodes: SvgIconNode[] | string): IconButtonEl {
+  return new IconButtonEl(iconNodes);
 }
 
 /**
  * AddIconButton function.
  * @param {LayoutElement | BaseElement} parent - The parent parameter
  * @param {SvgIconNode[] | string} iconNodes - The icon nodes parameter
- * @returns {IconButton}
+ * @returns {IconButtonEl}
  *
  */
-export function AddIconButton(
-  parent: LayoutElement,
-  iconNodes: SvgIconNode[] | string,
-): IconButton {
+export function IconButton(
+  iconNodes: SvgIconNode[] | string, bindOptions?: { into?: import("../../../core/src/elements/Layout.ts").LayoutElement }
+): IconButtonEl {
   const btn = CreateIconButton(iconNodes);
-  parent.AddChild(btn);
+  const parentTarget = bindOptions?.into ?? currentAutoBindTarget();
+      if (parentTarget) parentTarget._internalMount(btn);
+      else document.body.appendChild(btn.element);
   return btn;
 }

@@ -33,7 +33,7 @@ const handleSva = sva({
   },
 });
 
-export class BottomSheet extends OverlayElement {
+export class BottomSheetEl extends OverlayElement {
   private contentEl: HTMLElement;
 
   constructor() {
@@ -79,19 +79,17 @@ export class BottomSheet extends OverlayElement {
   }
 }
 
-function CreateBottomSheet(): BottomSheet {
-  return new BottomSheet();
+function CreateBottomSheet(): BottomSheetEl {
+  return new BottomSheetEl();
 }
 
 /**
  * AddBottomSheet function.
  * @param {import("../../../core/src/elements/Layout.ts").LayoutElement} parent - The parent parameter
- * @returns {BottomSheet}
+ * @returns {BottomSheetEl}
  */
-export function AddBottomSheet(
-  parent: import("../../../core/src/elements/Layout.ts").LayoutElement,
-): BottomSheet {
+export function BottomSheet(
+): BottomSheetEl {
   const sheet = CreateBottomSheet();
-  parent.AddChild(sheet);
   return sheet;
 }

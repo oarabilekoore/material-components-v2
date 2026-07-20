@@ -1,6 +1,6 @@
 import { Icon, SvgIconNode, Icons } from "../icons/Icon.ts";
 import { BaseElement } from "../../../core/src/elements/BaseElement.ts";
-import { LayoutElement } from "../../../core/src/elements/Layout.ts";
+import { LayoutElement, currentAutoBindTarget } from "../../../core/src/elements/Layout.ts";
 import { currentTheme } from "../theme.ts";
 import { sva } from "../../../core/src/utils/sva.ts";
 
@@ -106,7 +106,7 @@ class NavigationBarItem extends BaseElement {
   }
 }
 
-export class NavigationBar extends BaseElement {
+export class NavigationBarEl extends BaseElement {
   private _items: NavigationBarItem[] = [];
   private _selectedIndex: number = 0;
   private _onSelect: ((index: number, value: string) => void) | null = null;
@@ -158,18 +158,20 @@ export class NavigationBar extends BaseElement {
   }
 }
 
-function CreateNavigationBar(): NavigationBar {
-  return new NavigationBar();
+function CreateNavigationBar(): NavigationBarEl {
+  return new NavigationBarEl();
 }
 
 /**
  * AddNavigationBar function.
  * @param {LayoutElement} parent - The parent parameter
- * @returns {NavigationBar}
+ * @returns {NavigationBarEl}
  *
  */
-export function AddNavigationBar(parent: LayoutElement): NavigationBar {
+export function NavigationBar(bindOptions?: { into?: import("../../../core/src/elements/Layout.ts").LayoutElement }): NavigationBarEl {
   const nav = CreateNavigationBar();
-  parent.AddChild(nav);
+  const parentTarget = bindOptions?.into ?? currentAutoBindTarget();
+      if (parentTarget) parentTarget._internalMount(nav);
+      else document.body.appendChild(nav.element);
   return nav;
 }

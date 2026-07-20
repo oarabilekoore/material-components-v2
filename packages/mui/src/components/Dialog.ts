@@ -1,3 +1,4 @@
+import { Icon, SvgIconNode } from "../icons/Icon.ts";
 import { BaseElement } from "../../../core/src/elements/BaseElement.ts";
 import { OverlayElement } from "../../../core/src/elements/Overlay.ts";
 import { Bind } from "../../../core/src/state/signals.ts";
@@ -170,7 +171,7 @@ const dividerSva = sva({
   },
 });
 
-export class Dialog extends OverlayElement {
+export class DialogEl extends OverlayElement {
   private iconEl: HTMLElement;
   private _icon?: Icon;
   private titleEl: HTMLElement;
@@ -338,21 +339,19 @@ export class Dialog extends OverlayElement {
   }
 }
 
-function CreateDialog(type: DialogType = "basic"): Dialog {
-  return new Dialog(type);
+function CreateDialog(type: DialogType = "basic"): DialogEl {
+  return new DialogEl(type);
 }
 
 /**
  * AddDialog function.
  * @param {import("../../../core/src/elements/Layout.ts").LayoutElement} parent - The parent parameter
  * @param {DialogType} type - The type parameter
- * @returns {Dialog}
+ * @returns {DialogEl}
  */
-export function AddDialog(
-  parent: import("../../../core/src/elements/Layout.ts").LayoutElement,
+export function Dialog(
   type: DialogType = "basic",
-): Dialog {
+): DialogEl {
   const dialog = CreateDialog(type);
-  parent.AddChild(dialog);
   return dialog;
 }

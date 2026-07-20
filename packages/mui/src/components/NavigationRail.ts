@@ -1,9 +1,9 @@
 import { Icon, SvgIconNode, Icons } from "../icons/Icon.ts";
 import { BaseElement } from "../../../core/src/elements/BaseElement.ts";
-import { LayoutElement } from "../../../core/src/elements/Layout.ts";
+import { LayoutElement, currentAutoBindTarget } from "../../../core/src/elements/Layout.ts";
 import { sva } from "../../../core/src/utils/sva.ts";
 import { attachRipple } from "../../../core/src/utils/ripple.ts";
-import { Badge } from "./Badge.ts";
+import { BadgeEl } from "./Badge.ts";
 
 const fabContainerSva = sva({
   base: {
@@ -124,7 +124,7 @@ class NavigationRailItem extends BaseElement {
   private _labelEl: HTMLSpanElement;
   private _value: string;
   private _active: boolean = false;
-  private _badge?: Badge;
+  private _badge?: BadgeEl;
 
   constructor(iconNodes: SvgIconNode[] | string, label: string, value: string) {
     super("div");
@@ -157,7 +157,7 @@ class NavigationRailItem extends BaseElement {
     return this._value;
   }
 
-  SetBadge(badge: Badge | null): this {
+  SetBadge(badge: BadgeEl | null): this {
     if (this._badge) {
       this._badge.Dispose();
       this._badge = undefined;
@@ -176,7 +176,7 @@ class NavigationRailItem extends BaseElement {
   }
 }
 
-export class NavigationRail extends BaseElement {
+export class NavigationRailEl extends BaseElement {
   private _items: NavigationRailItem[] = [];
   private _selectedIndex: number = 0;
   private _onSelect: ((index: number, value: string) => void) | null = null;
@@ -257,18 +257,20 @@ export class NavigationRail extends BaseElement {
   }
 }
 
-function CreateNavigationRail(): NavigationRail {
-  return new NavigationRail();
+function CreateNavigationRail(): NavigationRailEl {
+  return new NavigationRailEl();
 }
 
 /**
  * AddNavigationRail function.
  * @param {LayoutElement} parent - The parent parameter
- * @returns {NavigationRail}
+ * @returns {NavigationRailEl}
  *
  */
-export function AddNavigationRail(parent: LayoutElement): NavigationRail {
+export function NavigationRail(bindOptions?: { into?: import("../../../core/src/elements/Layout.ts").LayoutElement }): NavigationRailEl {
   const rail = CreateNavigationRail();
-  parent.AddChild(rail);
+  const parentTarget = bindOptions?.into ?? currentAutoBindTarget();
+      if (parentTarget) parentTarget._internalMount(rail);
+      else document.body.appendChild(rail.element);
   return rail;
 }

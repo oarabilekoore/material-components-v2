@@ -1,5 +1,5 @@
 import { BaseElement } from "../../../core/src/elements/BaseElement.ts";
-import { LayoutElement } from "../../../core/src/elements/Layout.ts";
+import { LayoutElement, currentAutoBindTarget } from "../../../core/src/elements/Layout.ts";
 import { currentTheme } from "../theme.ts";
 import { sva } from "../../../core/src/utils/sva.ts";
 
@@ -44,7 +44,7 @@ const indicatorSva = sva({
   defaultVariants: { indeterminate: false }
 });
 
-export class LinearProgress extends BaseElement {
+export class LinearProgressEl extends BaseElement {
   private _track: HTMLElement;
   private _indicator!: HTMLElement;
 
@@ -104,18 +104,20 @@ export class LinearProgress extends BaseElement {
   }
 }
 
-function CreateLinearProgress(): LinearProgress {
-  return new LinearProgress();
+function CreateLinearProgress(): LinearProgressEl {
+  return new LinearProgressEl();
 }
 
 /**
  * AddLinearProgress function.
  * @param {LayoutElement} parent - The parent parameter
- * @returns {LinearProgress}
+ * @returns {LinearProgressEl}
  *
  */
-export function AddLinearProgress(parent: LayoutElement): LinearProgress {
+export function LinearProgress(bindOptions?: { into?: import("../../../core/src/elements/Layout.ts").LayoutElement }): LinearProgressEl {
   const progress = CreateLinearProgress();
-  parent.AddChild(progress);
+  const parentTarget = bindOptions?.into ?? currentAutoBindTarget();
+      if (parentTarget) parentTarget._internalMount(progress);
+      else document.body.appendChild(progress.element);
   return progress;
 }

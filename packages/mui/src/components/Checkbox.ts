@@ -1,5 +1,5 @@
 import { BaseElement } from "../../../core/src/elements/BaseElement.ts";
-import { LayoutElement } from "../../../core/src/elements/Layout.ts";
+import { LayoutElement, currentAutoBindTarget } from "../../../core/src/elements/Layout.ts";
 import { sva } from "../../../core/src/utils/sva.ts";
 
 const containerSva = sva({
@@ -104,7 +104,7 @@ const labelSva = sva({
   },
 });
 
-export class Checkbox extends BaseElement {
+export class CheckboxEl extends BaseElement {
   private input: HTMLInputElement;
   private box: HTMLDivElement;
   private checkmark: HTMLSpanElement;
@@ -189,19 +189,21 @@ export class Checkbox extends BaseElement {
   }
 }
 
-function CreateCheckbox(label = ""): Checkbox {
-  return new Checkbox(label);
+function CreateCheckbox(label = ""): CheckboxEl {
+  return new CheckboxEl(label);
 }
 
 /**
  * AddCheckbox function.
  * @param {LayoutElement} parent - The parent parameter
  * @param {any} label - The label parameter
- * @returns {Checkbox}
+ * @returns {CheckboxEl}
  *
  */
-export function AddCheckbox(parent: LayoutElement, label = ""): Checkbox {
+export function Checkbox(label = "", bindOptions?: { into?: import("../../../core/src/elements/Layout.ts").LayoutElement }): CheckboxEl {
   const box = CreateCheckbox(label);
-  parent.AddChild(box);
+  const parentTarget = bindOptions?.into ?? currentAutoBindTarget();
+      if (parentTarget) parentTarget._internalMount(box);
+      else document.body.appendChild(box.element);
   return box;
 }

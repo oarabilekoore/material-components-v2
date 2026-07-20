@@ -108,7 +108,7 @@ const daysHeaderSpanSva = sva({
   },
 });
 
-export class DatePicker extends OverlayElement {
+export class DatePickerEl extends OverlayElement {
   private currentYear: number;
   private currentMonth: number;
   private selectedDate: Date | null = null;
@@ -276,18 +276,17 @@ export class DatePicker extends OverlayElement {
   }
 }
 
-function CreateDatePicker(): DatePicker {
-  return new DatePicker();
+function CreateDatePicker(): DatePickerEl {
+  return new DatePickerEl();
 }
 
 /**
  * AddDatePicker function.
  * @param {LayoutElement} parent - The parent parameter
- * @returns {DatePicker}
+ * @returns {DatePickerEl}
  *
  */
-export function AddDatePicker(parent: LayoutElement): DatePicker {
+export function DatePicker(): DatePickerEl {
   const picker = CreateDatePicker();
-  parent.AddChild(picker);
   return picker;
 }

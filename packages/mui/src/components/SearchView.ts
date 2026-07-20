@@ -1,6 +1,6 @@
 import { BaseElement } from "../../../core/src/elements/BaseElement.ts";
 import { LayoutElement } from "../../../core/src/elements/Layout.ts";
-import { SearchBar } from "./SearchBar.ts";
+import { SearchBarEl } from "./SearchBar.ts";
 import { Icon, Icons } from "../icons/Icon.ts";
 import { sva } from "../../../core/src/utils/sva.ts";
 
@@ -57,8 +57,8 @@ const contentSva = sva({
   },
 });
 
-export class SearchView extends BaseElement {
-  private _searchBar: SearchBar;
+export class SearchViewEl extends BaseElement {
+  private _searchBar: SearchBarEl;
   private _contentEl: HTMLDivElement;
   private _isOpen = false;
 
@@ -76,7 +76,7 @@ export class SearchView extends BaseElement {
     backBtn.addEventListener("click", () => this.Close());
     header.appendChild(backBtn);
 
-    this._searchBar = new SearchBar("Search...", "filled");
+    this._searchBar = new SearchBarEl("Search...", "filled");
     this._searchBar.element.style.flex = "1";
     this._searchBar.element.style.boxShadow = "none";
     this._searchBar.element.style.backgroundColor = "transparent";
@@ -115,7 +115,7 @@ export class SearchView extends BaseElement {
     return this;
   }
 
-  GetSearchBar(): SearchBar {
+  GetSearchBar(): SearchBarEl {
     return this._searchBar;
   }
 
@@ -129,6 +129,10 @@ export class SearchView extends BaseElement {
   }
 }
 
-export function CreateSearchView(): SearchView {
-  return new SearchView();
+export function CreateSearchView(): SearchViewEl {
+  return new SearchViewEl();
+}
+
+export function SearchView(): SearchViewEl {
+  return CreateSearchView();
 }

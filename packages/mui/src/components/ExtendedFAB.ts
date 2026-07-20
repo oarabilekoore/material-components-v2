@@ -1,4 +1,5 @@
-import { Icon, SvgIconNode, Icons } from "../icons/Icon.ts";
+import { Icon, SvgIconNode } from "../icons/Icon.ts";
+import { currentAutoBindTarget } from "../../../core/src/elements/index.ts";
 import { BaseElement } from "../../../core/src/elements/BaseElement.ts";
 import { LayoutElement } from "../../../core/src/elements/Layout.ts";
 import { FabSize } from "../theme.ts";
@@ -78,7 +79,7 @@ const labelSva = sva({
   },
 });
 
-export class ExtendedFab extends BaseElement {
+export class ExtendedFabEl extends BaseElement {
   private _size: FabSize;
   private iconEl: HTMLElement;
   private labelEl: HTMLSpanElement;
@@ -167,8 +168,8 @@ function CreateExtendedFab(
   iconNodes: SvgIconNode[] | string,
   label: string,
   size: FabSize = "medium",
-): ExtendedFab {
-  return new ExtendedFab(iconNodes, label, size);
+): ExtendedFabEl {
+  return new ExtendedFabEl(iconNodes, label, size);
 }
 
 /**
@@ -180,13 +181,14 @@ function CreateExtendedFab(
  * @returns {ExtendedFab}
  *
  */
-export function AddExtendedFab(
-  parent: LayoutElement,
-  iconNodes: SvgIconNode[] | string,
+export function ExtendedFab(
   label: string,
-  size: FabSize = "medium",
-): ExtendedFab {
-  const fab = CreateExtendedFab(iconNodes, label, size);
-  parent.AddChild(fab);
+  iconNodes?: import("../icons/Icon.ts").SvgIconNode[] | string,
+  size: import("../theme.ts").FabSize = "medium",
+  bindOptions?: { into?: import("../../../core/src/elements/Layout.ts").LayoutElement }
+): ExtendedFabEl {
+  const fab = CreateExtendedFab(iconNodes || "", label, size);
+  const parentTarget = bindOptions?.into ?? currentAutoBindTarget();
+  if (parentTarget) parentTarget._internalMount(fab);
   return fab;
 }

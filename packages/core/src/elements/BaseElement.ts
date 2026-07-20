@@ -1,4 +1,111 @@
 import { attachStyleObject } from "../utils/sva.ts";
+import { Bind } from "../state/signals.ts";
+import { WindowSizeClass, WindowSizeClassKey } from "../state/breakpoints.ts";
+
+
+export type VisSource = "route" | "morph" | "manual";
+
+export class VisibilityArbiter {
+  private votes = new Map<VisSource, boolean>();
+  constructor(private el: BaseElement) {}
+  Vote(source: VisSource, visible: boolean) {
+    this.votes.set(source, visible);
+    this.resolve();
+  }
+  private resolve() {
+    const visible = [...this.votes.values()].every(v => v);
+    this.el.element.style.display = visible ? (this.el as any).goneDisplay : "none";
+  }
+}
+
+export type MorphMethodCall<T> = {
+  [K in keyof T]?: T[K] extends (...args: infer A) => any ? A : never;
+};
+export type MorphOrderedCall<T> = Array<
+  { [K in keyof T]: T[K] extends (...args: infer A) => any ? [K, A] : never }[keyof T]
+>;
+export type MorphBreakpointValue<T> =
+  | MorphMethodCall<T>
+  | MorphOrderedCall<T>
+  | ((el: T) => void);
+
+export type MorphConfig<T> = Partial<Record<WindowSizeClassKey, MorphBreakpointValue<T>>>;
+
+const TOGGLE_DEFAULTS: Partial<Record<string, unknown>> = {
+  SetVisibility: ["Gone"],
+};
+
+type MorphEntry = { el: BaseElement; config: MorphConfig<any>; resolve: () => void };
+const _morphRegistry = new Set<MorphEntry>();
+let _morphBindInitialized = false;
+
+function ensureMorphBind() {
+  if (_morphBindInitialized) return;
+  _morphBindInitialized = true;
+  Bind(WindowSizeClass.Get(), () => {
+    for (const entry of _morphRegistry) entry.resolve();
+  });
+}
+
+function applyMorphResolution<T extends BaseElement>(el: T, config: MorphConfig<T>) {
+  const current = WindowSizeClass.Get().Get();
+  const order: WindowSizeClassKey[] = ["Compact", "Medium", "Expanded"];
+  const upTo = order.slice(0, order.indexOf(current) + 1);
+
+  const allMethods = new Set<string>();
+  for (const bp of order) {
+    const val = config[bp];
+    if (val && typeof val === "object" && !Array.isArray(val)) {
+      Object.keys(val).forEach(m => allMethods.add(m));
+    }
+  }
+
+  const resolvedCalls: Record<string, unknown[]> = {};
+
+  for (const method of allMethods) {
+    const declaredAt = order.filter(bp => {
+      const val = config[bp];
+      return val && typeof val === "object" && !Array.isArray(val) && method in val;
+    });
+
+    if (method in TOGGLE_DEFAULTS && declaredAt.length === 1) {
+      const bp = declaredAt[0];
+      if (upTo.includes(bp)) {
+        resolvedCalls[method] = (config[bp] as any)[method];
+      } else {
+        resolvedCalls[method] = TOGGLE_DEFAULTS[method] as unknown[];
+      }
+      continue;
+    }
+
+    for (const bp of upTo) {
+      const val = config[bp];
+      if (val && typeof val === "object" && !Array.isArray(val) && method in val) {
+        resolvedCalls[method] = (val as any)[method];
+      }
+    }
+  }
+
+  el.Batch(resolvedCalls, true);
+
+  const currentVal = config[current];
+  if (currentVal) {
+    if (Array.isArray(currentVal)) {
+      for (const [method, args] of currentVal as [keyof T, unknown[]][]) {
+        const fn = (el as any)[method];
+        if (typeof fn === "function") {
+          if (method === "SetVisibility") {
+             fn.apply(el, [...args, true]);
+          } else {
+             fn.apply(el, args);
+          }
+        }
+      }
+    } else if (typeof currentVal === "function") {
+      currentVal(el);
+    }
+  }
+}
 
 export type Visibility = "Show" | "Hide" | "Gone";
 
@@ -7,7 +114,8 @@ export class BaseElement {
   element: HTMLElement;
   data: Record<string, unknown> = {};
 
-  private goneDisplay = "";
+  protected goneDisplay = "";
+  _visibility: VisibilityArbiter;
   private longTouchTimer: number | undefined;
   private _appliedStyleClass = "";
   protected _cleanupTasks: Array<() => void> = [];
@@ -36,6 +144,7 @@ export class BaseElement {
   constructor(element: string) {
     this.element = document.createElement(element);
     this.goneDisplay = getComputedStyle(this.element).display || "block";
+    this._visibility = new VisibilityArbiter(this);
   }
 
   /** Sets background color. */
@@ -320,8 +429,8 @@ export class BaseElement {
 
   /** Makes visible, restoring layout space. */
   Show() {
-    this.element.style.display = this.goneDisplay;
     this.element.style.visibility = "visible";
+    this._visibility.Vote("manual", true);
     return this;
   }
 
@@ -333,15 +442,22 @@ export class BaseElement {
 
   /** Hides and removes from layout flow entirely. */
   Gone() {
-    this.element.style.display = "none";
+    this._visibility.Vote("manual", false);
     return this;
   }
 
   /** Sets visibility to "Show", "Hide", or "Gone". */
-  SetVisibility(mode: Visibility) {
-    if (mode === "Show") return this.Show();
-    if (mode === "Hide") return this.Hide();
-    return this.Gone();
+  SetVisibility(mode: Visibility, isMorph = false) {
+    const source = isMorph ? "morph" : "manual";
+    if (mode === "Show") {
+      this.element.style.visibility = "visible";
+      this._visibility.Vote(source, true);
+    } else if (mode === "Hide") {
+      this.element.style.visibility = "hidden";
+    } else {
+      this._visibility.Vote(source, false);
+    }
+    return this;
   }
 
   /** Gets current visibility state. */
@@ -537,12 +653,41 @@ export class BaseElement {
   }
 
   /** Calls multiple setter methods at once from a { MethodName: [args] } map. */
-  Batch(properties: Record<string, unknown[]>) {
+  Batch(properties: Record<string, unknown[]>, isMorph = false) {
     for (const [method, args] of Object.entries(properties)) {
       // deno-lint-ignore no-explicit-any
       const fn = (this as any)[method];
-      if (typeof fn === "function") fn.apply(this, args);
+      if (typeof fn === "function") {
+        if (isMorph && method === "SetVisibility") {
+           fn.apply(this, [...args, true]);
+        } else {
+           fn.apply(this, args);
+        }
+      }
     }
+    return this;
+  }
+
+  Morph<T extends BaseElement>(this: T, config: MorphConfig<T>): T {
+    ensureMorphBind();
+
+    let entry = [..._morphRegistry].find(e => e.el === this as unknown as BaseElement) as MorphEntry | undefined;
+    if (!entry) {
+      entry = {
+        el: this as unknown as BaseElement,
+        config: {},
+        resolve: () => {},
+      };
+      entry.resolve = () => applyMorphResolution(this as unknown as BaseElement, entry!.config);
+      _morphRegistry.add(entry);
+      this.RegisterCleanup(() => _morphRegistry.delete(entry!));
+    }
+
+    for (const key of Object.keys(config) as WindowSizeClassKey[]) {
+      entry.config[key] = { ...(entry.config[key] as object ?? {}), ...(config[key] as object) };
+    }
+
+    entry.resolve();
     return this;
   }
 }

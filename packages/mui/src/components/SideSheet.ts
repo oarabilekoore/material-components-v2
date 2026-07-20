@@ -1,5 +1,6 @@
 import { Icon, SvgIconNode, Icons } from "../icons/Icon.ts";
 import { OverlayElement } from "../../../core/src/elements/Overlay.ts";
+import { currentAutoBindTarget } from "../../../core/src/elements/Layout.ts";
 import { BaseElement } from "../../../core/src/elements/BaseElement.ts";
 import { LayoutElement } from "../../../core/src/elements/Layout.ts";
 import { sva } from "../../../core/src/utils/sva.ts";
@@ -97,7 +98,7 @@ const contentSva = sva({
   },
 });
 
-export class SideSheet extends OverlayElement {
+export class SideSheetEl extends OverlayElement {
   private titleEl: HTMLDivElement;
   private closeBtn: Icon;
   private contentEl: HTMLDivElement;
@@ -171,8 +172,8 @@ export class SideSheet extends OverlayElement {
   }
 }
 
-function CreateSideSheet(title = "Side Sheet", type: "modal" | "standard" = "modal"): SideSheet {
-  return new SideSheet(title, type);
+function CreateSideSheet(title = "Side Sheet", type: "modal" | "standard" = "modal"): SideSheetEl {
+  return new SideSheetEl(title, type);
 }
 
 /**
@@ -180,14 +181,16 @@ function CreateSideSheet(title = "Side Sheet", type: "modal" | "standard" = "mod
  * @param {LayoutElement} parent - The parent parameter
  * @param {any} title - The title parameter
  * @param {"modal" | "standard"} type - The type parameter
- * @returns {SideSheet}
+ * @returns {SideSheetEl}
  *
  */
-export function AddSideSheet(parent: LayoutElement, title = "Side Sheet", type: "modal" | "standard" = "modal"): SideSheet {
+export function SideSheet(title = "Side Sheet", type: "modal" | "standard" = "modal"): SideSheetEl {
   const sheet = CreateSideSheet(title, type);
   // Optional: add standard sheet to parent instead of body if desired
   if (type === "standard") {
-    parent.AddChild(sheet);
+    const parentTarget = currentAutoBindTarget();
+    if (parentTarget) parentTarget._internalMount(sheet);
+    else document.body.appendChild(sheet.element);
   }
   return sheet;
 }

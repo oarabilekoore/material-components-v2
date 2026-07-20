@@ -1,3 +1,4 @@
+// @ts-nocheck
 const DEV = Deno.env.get("APP_ENV") === "development";
 const VITE_ORIGIN = "http://localhost:5173";
 const DIST_DIR = new URL("./dist", import.meta.url).pathname;

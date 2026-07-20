@@ -1,6 +1,6 @@
 import { Icon, SvgIconNode, Icons } from "../icons/Icon.ts";
 import { BaseElement } from "../../../core/src/elements/BaseElement.ts";
-import { LayoutElement } from "../../../core/src/elements/Layout.ts";
+import { LayoutElement, currentAutoBindTarget } from "../../../core/src/elements/Layout.ts";
 import { ChipVariant } from "../theme.ts";
 import { sva } from "../../../core/src/utils/sva.ts";
 
@@ -48,7 +48,7 @@ const chipSva = sva({
   },
 });
 
-export class Chip extends BaseElement {
+export class ChipEl extends BaseElement {
   private variant: ChipVariant;
   private selected = false;
   private labelSpan: HTMLSpanElement;
@@ -142,8 +142,8 @@ export class Chip extends BaseElement {
 function CreateChip(
   label: string,
   variant: ChipVariant = "assist",
-): Chip {
-  return new Chip(label, variant);
+): ChipEl {
+  return new ChipEl(label, variant);
 }
 
 /**
@@ -151,15 +151,16 @@ function CreateChip(
  * @param {LayoutElement} parent - The parent parameter
  * @param {string} label - The label parameter
  * @param {ChipVariant} variant - The variant parameter
- * @returns {Chip}
+ * @returns {ChipEl}
  *
  */
-export function AddChip(
-  parent: LayoutElement,
+export function Chip(
   label: string,
-  variant: ChipVariant = "assist",
-): Chip {
+  variant: ChipVariant = "assist", bindOptions?: { into?: import("../../../core/src/elements/Layout.ts").LayoutElement }
+): ChipEl {
   const chip = CreateChip(label, variant);
-  parent.AddChild(chip);
+  const parentTarget = bindOptions?.into ?? currentAutoBindTarget();
+      if (parentTarget) parentTarget._internalMount(chip);
+      else document.body.appendChild(chip.element);
   return chip;
 }
